@@ -1,0 +1,28 @@
+# 依赖包
+# 爬虫
+apify-client>=1.0.0
+playwright>=1.40.0
+scrapy>=2.11.0
+beautifulsoup4>=4.12.0
+
+# 数据处理
+pandas>=2.0.0
+polars>=0.20.0
+
+# 大模型
+openai>=1.0.0
+anthropic>=0.18.0
+
+# 可视化
+streamlit>=1.30.0
+plotly>=5.18.0
+echarts>=0.1.0
+
+# 数据库
+psycopg2-binary>=2.9.0
+sqlalchemy>=2.0.0
+
+# 工具
+python-dotenv>=1.0.0
+httpx>=0.25.0
+loguru>=0.7.0
