@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球汽车市场调研与跨国供应链风险分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
+.header { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 2rem; text-align: center; border-bottom: 1px solid #1e293b; }
+.header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.header p { color: #94a3b8; font-size: 0.95rem; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 1.5rem; max-width: 1600px; margin: 0 auto; }
+.card { background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; }
+.card.full { grid-column: 1 / -1; }
+.card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #f1f5f9; }
+.chart { width: 100%; height: 420px; }
+.chart-sm { width: 100%; height: 350px; }
+.risk-cards { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.risk-card { background: #0f172a; border-radius: 8px; padding: 1rem; text-align: center; border: 1px solid #334155; }
+.risk-card .score { font-size: 1.5rem; font-weight: 700; }
+.risk-card .label { font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem; }
+.risk-low { color: #10b981; }
+.risk-medium { color: #f59e0b; }
+.risk-high { color: #ef4444; }
+.risk-critical { color: #dc2626; }
+.insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.insights { background: #0f172a; border-radius: 8px; padding: 1rem; }
+.insights h3 { font-size: 0.95rem; color: #f59e0b; margin-bottom: 0.5rem; }
+.insights ul { list-style: none; padding: 0; }
+.insights li { padding: 0.4rem 0; color: #cbd5e1; font-size: 0.85rem; border-bottom: 1px solid #1e293b; }
+.insights li::before { content: "⚠️ "; }
+.footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; }
+@media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .risk-cards { grid-template-columns: repeat(4, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🚗 全球汽车市场调研与跨国供应链风险分析</h1>
+    <p>巴西 · 墨西哥 · 俄罗斯 · 智利 · 哈萨克斯坦 · 巴基斯坦 · 秘鲁 | 数据来源：OICA/各国汽车协会/行业公开报告</p>
+</div>
+
+<div class="grid">
+<div class="card full">
+    <h2>⚡ 供应链风险总览（综合评分 0-100）</h2>
+    <div class="risk-cards">
+<div class="risk-card"><div class="score risk-high">53.6</div><div class="label">巴西</div></div>
+<div class="risk-card"><div class="score risk-medium">39.0</div><div class="label">墨西哥</div></div>
+<div class="risk-card"><div class="score risk-critical">79.0</div><div class="label">俄罗斯</div></div>
+<div class="risk-card"><div class="score risk-medium">35.0</div><div class="label">智利</div></div>
+<div class="risk-card"><div class="score risk-medium">49.8</div><div class="label">哈萨克斯坦</div></div>
+<div class="risk-card"><div class="score risk-high">61.2</div><div class="label">巴基斯坦</div></div>
+<div class="risk-card"><div class="score risk-medium">39.0</div><div class="label">秘鲁</div></div>
+    </div>
+    <div id="risk_radar" class="chart-sm"></div>
+</div>
+
+<div class="card">
+    <h2>📊 各国汽车产量趋势 (2019-2024)</h2>
+    <div id="production_chart" class="chart"></div>
+</div>
+
+<div class="card">
+    <h2>📈 各国新车销量趋势 (2019-2024, 万辆)</h2>
+    <div id="sales_chart" class="chart"></div>
+</div>
+
+<div class="card">
+    <h2>🔋 2024年电动车渗透率 (%)</h2>
+    <div id="ev_chart" class="chart-sm"></div>
+</div>
+
+<div class="card">
+    <h2>🏷️ 巴西汽车品牌市场份额 (2024)</h2>
+    <div id="brand_brazil" class="chart-sm"></div>
+</div>
+
+<div class="card">
+    <h2>🏷️ 俄罗斯汽车品牌市场份额 (2024)</h2>
+    <div id="brand_russia" class="chart-sm"></div>
+</div>
+
+<div class="card">
+    <h2>🏷️ 墨西哥汽车品牌市场份额 (2024)</h2>
+    <div id="brand_mexico" class="chart-sm"></div>
+</div>
+
+<div class="card full">
+    <h2>🔍 各国供应链风险对比</h2>
+    <div id="risk_detail" class="chart"></div>
+</div>
+
+<div class="card full">
+    <h2>📋 各国供应链关键风险</h2>
+    <div class="insights-grid">
+<div class="insights"><h3>巴西 关键风险</h3><ul><li>汽车进口关税高（35%），供应链依赖本地化</li><li>半导体短缺持续影响产能</li><li>物流基础设施不足（港口拥堵）</li><li>汇率波动（BRL/USD）影响进口零部件成本</li></ul></div>
+<div class="insights"><h3>墨西哥 关键风险</h3><ul><li>USMCA规则变更对本地化率要求提升</li><li>近岸外包加速带来产能压力</li><li>跨境供应链安全（墨美边境）</li><li>电力供应稳定性影响制造</li></ul></div>
+<div class="insights"><h3>俄罗斯 关键风险</h3><ul><li>西方制裁导致零部件断供（关键芯片/传感器）</li><li>品牌退出后平行进口成本高</li><li>卢布汇率剧烈波动</li><li>供应链向中国/中亚转移</li></ul></div>
+<div class="insights"><h3>智利 关键风险</h3><ul><li>完全依赖进口（无本土制造）</li><li>南美物流链路脆弱</li><li>铜价波动影响宏观经济</li><li>电动车渗透率快速增长带来充电基础设施挑战</li></ul></div>
+<div class="insights"><h3>哈萨克斯坦 关键风险</h3><ul><li>内陆国家物流依赖中俄走廊</li><li>组装产能依赖CKD/SKD进口</li><li>制裁风险间接影响（俄罗斯转口贸易）</li><li>关税同盟(EAEU)政策不确定性</li></ul></div>
+<div class="insights"><h3>巴基斯坦 关键风险</h3><ul><li>外汇储备不足导致零部件进口困难</li><li>卢比贬值推高进口成本</li><li>本土化率低（<30%），深度依赖日系供应链</li><li>政治不稳定影响投资环境</li></ul></div>
+<div class="insights"><h3>秘鲁 关键风险</h3><ul><li>完全依赖进口（无本土制造）</li><li>安第斯山脉地形增加物流成本</li><li>二手车市场占主导（新车/二手车比约1:5）</li><li>社会不稳定影响消费信心</li></ul></div>
+    </div>
+</div>
+</div>
+
+<div class="footer">
+    <p>全球汽车市场调研与跨国供应链风险分析 | 数据截至2024年 | 基于OICA/ANFAVEA/AMIA/AEB/ANAC/KAZAUTO/PAMA/ARAPER公开数据</p>
+    <p>GitHub: https://github.com/Zephyr-Song/global-auto-supply-chain</p>
+</div>
+
+<script>
+var years = [2019, 2020, 2021, 2022, 2023, 2024];
+var countryNames = ["\u5df4\u897f", "\u58a8\u897f\u54e5", "\u4fc4\u7f57\u65af", "\u667a\u5229", "\u54c8\u8428\u514b\u65af\u5766", "\u5df4\u57fa\u65af\u5766", "\u79d8\u9c81"];
+
+// ============ 产量趋势图 ============
+var prodChart = echarts.init(document.getElementById('production_chart'));
+prodChart.setOption({
+    tooltip: { trigger: 'axis' },
+    legend: { data: countryNames, top: 0, textStyle: { color: '#94a3b8' } },
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'category', data: years, axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8' } },
+    yAxis: { type: 'value', name: '产量（辆）', nameTextStyle: { color: '#94a3b8' }, axisLine: { lineStyle: { color: '#334155' } }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8', formatter: function(v) { return (v/10000).toFixed(0) + '万'; } } },
+    series: [{"type": "line", "name": "\u5df4\u897f", "data": [2948578, 2013968, 2482877, 2371558, 2333788, 2412000], "smooth": true, "itemStyle": {"color": "#009c3b"}}, {"type": "line", "name": "\u58a8\u897f\u54e5", "data": [3812339, 3114578, 2965760, 3309678, 3781533, 3950000], "smooth": true, "itemStyle": {"color": "#006847"}}, {"type": "line", "name": "\u4fc4\u7f57\u65af", "data": [1727448, 1427368, 1677196, 612268, 537533, 580000], "smooth": true, "itemStyle": {"color": "#d52b1e"}}, {"type": "line", "name": "\u667a\u5229", "data": [0, 0, 0, 0, 0, 0], "smooth": true, "itemStyle": {"color": "#ef3340"}}, {"type": "line", "name": "\u54c8\u8428\u514b\u65af\u5766", "data": [32600, 28900, 43200, 56700, 78400, 95000], "smooth": true, "itemStyle": {"color": "#00afca"}}, {"type": "line", "name": "\u5df4\u57fa\u65af\u5766", "data": [265000, 158000, 218000, 198000, 126000, 115000], "smooth": true, "itemStyle": {"color": "#01411c"}}, {"type": "line", "name": "\u79d8\u9c81", "data": [0, 0, 0, 0, 0, 0], "smooth": true, "itemStyle": {"color": "#d91023"}}]
+});
+
+// ============ 销量趋势图 ============
+var salesChart = echarts.init(document.getElementById('sales_chart'));
+salesChart.setOption({
+    tooltip: { trigger: 'axis' },
+    legend: { data: countryNames, top: 0, textStyle: { color: '#94a3b8' } },
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'category', data: years, axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8' } },
+    yAxis: { type: 'value', name: '销量（万辆）', nameTextStyle: { color: '#94a3b8' }, axisLine: { lineStyle: { color: '#334155' } }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
+    series: [{"type": "bar", "name": "\u5df4\u897f", "data": [278.8, 205.0, 219.3, 210.4, 231.3, 248.0], "itemStyle": {"color": "#009c3b"}}, {"type": "bar", "name": "\u58a8\u897f\u54e5", "data": [136.1, 96.9, 105.7, 113.6, 128.1, 142.0], "itemStyle": {"color": "#006847"}}, {"type": "bar", "name": "\u4fc4\u7f57\u65af", "data": [175.9, 159.9, 166.7, 68.7, 105.6, 155.0], "itemStyle": {"color": "#d52b1e"}}, {"type": "bar", "name": "\u667a\u5229", "data": [38.4, 33.0, 41.6, 39.0, 36.7, 35.5], "itemStyle": {"color": "#ef3340"}}, {"type": "bar", "name": "\u54c8\u8428\u514b\u65af\u5766", "data": [9.1, 7.8, 12.2, 13.9, 17.7, 18.5], "itemStyle": {"color": "#00afca"}}, {"type": "bar", "name": "\u5df4\u57fa\u65af\u5766", "data": [20.7, 12.6, 20.0, 18.0, 10.8, 9.8], "itemStyle": {"color": "#01411c"}}, {"type": "bar", "name": "\u79d8\u9c81", "data": [17.4, 12.9, 18.2, 17.0, 15.8, 15.2], "itemStyle": {"color": "#d91023"}}]
+});
+
+// ============ 风险雷达图 ============
+var radarChart = echarts.init(document.getElementById('risk_radar'));
+radarChart.setOption({
+    tooltip: {},
+    legend: { data: countryNames, bottom: 0, textStyle: { color: '#94a3b8', fontSize: 11 } },
+    radar: {
+        indicator: [
+            { name: '地缘政治', max: 1 },
+            { name: '供应中断', max: 1 },
+            { name: '价格波动', max: 1 },
+            { name: '物流风险', max: 1 },
+            { name: '法规风险', max: 1 }
+        ],
+        axisName: { color: '#94a3b8' },
+        splitArea: { areaStyle: { color: ['rgba(16,185,129,0.05)', 'rgba(245,158,11,0.05)', 'rgba(239,68,68,0.1)'] } }
+    },
+    series: [{
+        type: 'radar',
+        data: [{"value": [0.45, 0.55, 0.62, 0.58, 0.48], "name": "\u5df4\u897f", "itemStyle": {"color": "#009c3b"}, "areaStyle": {"opacity": 0.15}}, {"value": [0.35, 0.42, 0.48, 0.38, 0.32], "name": "\u58a8\u897f\u54e5", "itemStyle": {"color": "#006847"}, "areaStyle": {"opacity": 0.15}}, {"value": [0.92, 0.85, 0.78, 0.72, 0.68], "name": "\u4fc4\u7f57\u65af", "itemStyle": {"color": "#d52b1e"}, "areaStyle": {"opacity": 0.15}}, {"value": [0.22, 0.35, 0.42, 0.48, 0.28], "name": "\u667a\u5229", "itemStyle": {"color": "#ef3340"}, "areaStyle": {"opacity": 0.15}}, {"value": [0.42, 0.52, 0.55, 0.62, 0.38], "name": "\u54c8\u8428\u514b\u65af\u5766", "itemStyle": {"color": "#00afca"}, "areaStyle": {"opacity": 0.15}}, {"value": [0.52, 0.62, 0.72, 0.65, 0.55], "name": "\u5df4\u57fa\u65af\u5766", "itemStyle": {"color": "#01411c"}, "areaStyle": {"opacity": 0.15}}, {"value": [0.28, 0.38, 0.45, 0.52, 0.32], "name": "\u79d8\u9c81", "itemStyle": {"color": "#d91023"}, "areaStyle": {"opacity": 0.15}}]
+    }]
+});
+
+// ============ 电动车渗透率 ============
+var evChart = echarts.init(document.getElementById('ev_chart'));
+evChart.setOption({
+    tooltip: { trigger: 'axis', formatter: '{b}: {c}%' },
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'category', data: countryNames, axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8' } },
+    yAxis: { type: 'value', name: '渗透率(%)', nameTextStyle: { color: '#94a3b8' }, axisLine: { lineStyle: { color: '#334155' } }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
+    series: [{
+        type: 'bar',
+        data: [{"value": 4.8, "itemStyle": {"color": "#009c3b"}}, {"value": 6.5, "itemStyle": {"color": "#006847"}}, {"value": 2.2, "itemStyle": {"color": "#d52b1e"}}, {"value": 5.5, "itemStyle": {"color": "#ef3340"}}, {"value": 1.8, "itemStyle": {"color": "#00afca"}}, {"value": 0.8, "itemStyle": {"color": "#01411c"}}, {"value": 3.5, "itemStyle": {"color": "#d91023"}}],
+        barWidth: '50%',
+        label: { show: true, position: 'top', formatter: '{c}%', color: '#e2e8f0' }
+    }]
+});
+
+// ============ 品牌市场份额 - 巴西 ============
+var brandBR = echarts.init(document.getElementById('brand_brazil'));
+brandBR.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {d}%' },
+    color: ['#2563eb','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#9ca3af'],
+    series: [{
+        type: 'pie', radius: ['35%', '65%'],
+        data: [{"value": 19.2, "name": "Fiat"}, {"value": 14.8, "name": "Volkswagen"}, {"value": 11.5, "name": "Chevrolet"}, {"value": 8.3, "name": "Hyundai"}, {"value": 7.9, "name": "Toyota"}, {"value": 5.6, "name": "Jeep"}, {"value": 4.8, "name": "Honda"}, {"value": 4.2, "name": "Renault"}, {"value": 3.1, "name": "BYD"}, {"value": 20.6, "name": "Others"}],
+        label: { color: '#94a3b8', fontSize: 11 },
+        itemStyle: { borderColor: '#1e293b', borderWidth: 2 }
+    }]
+});
+
+// ============ 品牌市场份额 - 俄罗斯 ============
+var brandRU = echarts.init(document.getElementById('brand_russia'));
+brandRU.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {d}%' },
+    color: ['#2563eb','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#9ca3af'],
+    series: [{
+        type: 'pie', radius: ['35%', '65%'],
+        data: [{"value": 22.5, "name": "Lada"}, {"value": 12.8, "name": "Haval"}, {"value": 10.5, "name": "Chery"}, {"value": 8.2, "name": "Geely"}, {"value": 6.3, "name": "Changan"}, {"value": 5.1, "name": "Exeed"}, {"value": 4.8, "name": "Omoda"}, {"value": 4.2, "name": "Tank"}, {"value": 3.5, "name": "Jetour"}, {"value": 22.1, "name": "Others"}],
+        label: { color: '#94a3b8', fontSize: 11 },
+        itemStyle: { borderColor: '#1e293b', borderWidth: 2 }
+    }]
+});
+
+// ============ 品牌市场份额 - 墨西哥 ============
+var brandMX = echarts.init(document.getElementById('brand_mexico'));
+var brandMexicoData = [{"value": 17.5, "name": "Nissan"}, {"value": 14.2, "name": "Chevrolet"}, {"value": 10.8, "name": "Toyota"}, {"value": 8.6, "name": "Volkswagen"}, {"value": 6.9, "name": "Kia"}, {"value": 5.8, "name": "Hyundai"}, {"value": 5.1, "name": "Honda"}, {"value": 4.3, "name": "Mazda"}, {"value": 4.0, "name": "Ford"}, {"value": 22.8, "name": "Others"}];
+brandMX.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {d}%' },
+    color: ['#2563eb','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#9ca3af'],
+    series: [{
+        type: 'pie', radius: ['35%', '65%'],
+        data: brandMexicoData,
+        label: { color: '#94a3b8', fontSize: 11 },
+        itemStyle: { borderColor: '#1e293b', borderWidth: 2 }
+    }]
+});
+
+// ============ 风险详情 ============
+var riskDetail = echarts.init(document.getElementById('risk_detail'));
+riskDetail.setOption({
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: { data: countryNames, textStyle: { color: '#94a3b8' } },
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'category', data: ['地缘政治', '供应中断', '价格波动', '物流风险', '法规风险'], axisLine: { lineStyle: { color: '#334155' } }, axisLabel: { color: '#94a3b8' } },
+    yAxis: { type: 'value', max: 1, nameTextStyle: { color: '#94a3b8' }, axisLine: { lineStyle: { color: '#334155' } }, splitLine: { lineStyle: { color: '#1e293b' } }, axisLabel: { color: '#94a3b8' } },
+    series: [{"type": "bar", "name": "\u5df4\u897f", "data": [0.45, 0.55, 0.62, 0.58, 0.48], "itemStyle": {"color": "#009c3b"}}, {"type": "bar", "name": "\u58a8\u897f\u54e5", "data": [0.35, 0.42, 0.48, 0.38, 0.32], "itemStyle": {"color": "#006847"}}, {"type": "bar", "name": "\u4fc4\u7f57\u65af", "data": [0.92, 0.85, 0.78, 0.72, 0.68], "itemStyle": {"color": "#d52b1e"}}, {"type": "bar", "name": "\u667a\u5229", "data": [0.22, 0.35, 0.42, 0.48, 0.28], "itemStyle": {"color": "#ef3340"}}, {"type": "bar", "name": "\u54c8\u8428\u514b\u65af\u5766", "data": [0.42, 0.52, 0.55, 0.62, 0.38], "itemStyle": {"color": "#00afca"}}, {"type": "bar", "name": "\u5df4\u57fa\u65af\u5766", "data": [0.52, 0.62, 0.72, 0.65, 0.55], "itemStyle": {"color": "#01411c"}}, {"type": "bar", "name": "\u79d8\u9c81", "data": [0.28, 0.38, 0.45, 0.52, 0.32], "itemStyle": {"color": "#d91023"}}]
+});
+
+// 响应式
+window.addEventListener('resize', function() {
+    prodChart.resize(); salesChart.resize(); radarChart.resize();
+    evChart.resize(); brandBR.resize(); brandRU.resize(); brandMX.resize(); riskDetail.resize();
+});
+</script>
+</body>
+</html>
