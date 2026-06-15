@@ -13,8 +13,15 @@
 - MarkLines 全球汽车产业平台
 - 乘联分会/中汽协 中国汽车出口数据
 - 崔东树/芝能汽车 行业分析数据
+- FTI (泰国工业联合会)
+- Gaikindo (印尼汽车工业协会)
+- ODD/OSD (土耳其汽车经销商与制造商协会)
+- NAAMSA (南非汽车制造商协会)
+- MAA (马来西亚汽车协会)
+- 沙特工业发展基金
+- CEIC 全球经济数据库
 
-更新时间：2026-06-14
+更新时间：2026-06-15
 """
 
 import json
@@ -77,6 +84,49 @@ PRODUCTION_DATA = {
         "note": "秘鲁无本土汽车制造产能，100%依赖进口",
         "source": "ARAPER",
         "data_quality": "confirmed_zero"
+    },
+    "Thailand": {
+        "country_cn": "泰国",
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "production": [1427892, 1685915, 1883379, 1840567, 1470000, 1520000],
+        "source": "FTI(泰国工业联合会) | 2025年产量约152万辆，连续下滑后企稳",
+        "data_quality": "verified_monthly"
+    },
+    "Indonesia": {
+        "country_cn": "印尼",
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "production": [972012, 1120068, 1470146, 1395968, 1200000, 1100000],
+        "source": "Gaikindo(印尼汽车工业协会) | 2025年产量约110万辆，市场下行",
+        "data_quality": "verified_monthly"
+    },
+    "Turkey": {
+        "country_cn": "土耳其",
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "production": [1296300, 1278000, 1350000, 1468000, 1520000, 1480000],
+        "source": "ODD/OSD(土耳其汽车经销商与制造商协会) | 2025年产量约148万辆",
+        "data_quality": "verified_monthly"
+    },
+    "SaudiArabia": {
+        "country_cn": "沙特",
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "production": [0, 0, 0, 35000, 62000, 80000],
+        "note": "沙特2023年起开始CKD组装，规模有限，绝大部分仍依赖进口",
+        "source": "沙特工业发展基金+行业报告",
+        "data_quality": "estimated_from_reports"
+    },
+    "Malaysia": {
+        "country_cn": "马来西亚",
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "production": [575000, 480000, 620000, 690000, 720000, 750000],
+        "source": "MAA(马来西亚汽车协会)+MIDA | 2025年产量约75万辆",
+        "data_quality": "estimated_from_reports"
+    },
+    "SouthAfrica": {
+        "country_cn": "南非",
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "production": [447000, 499000, 555000, 568000, 580000, 570000],
+        "source": "NAAMSA(南非汽车制造商协会) | 2025年产量约57万辆",
+        "data_quality": "verified_monthly"
     }
 }
 
@@ -129,6 +179,48 @@ SALES_DATA = {
         "used_car_sales": [820000, 1050000, 980000, 900000, 870000, 890000],
         "source": "ARAPER | 秘鲁市场以二手车为主，新车/二手车比约1:5.7",
         "data_quality": "estimated_from_reports"
+    },
+    "Thailand": {
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "new_car_sales": [792000, 759000, 837000, 775000, 573000, 620000],
+        "used_car_sales": [2800000, 2650000, 2700000, 2600000, 2500000, 2600000],
+        "source": "FTI | 2025年销量约62万辆(+8%)，EV渗透率22.2%",
+        "data_quality": "verified_monthly"
+    },
+    "Indonesia": {
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "new_car_sales": [764000, 887000, 1048000, 1005000, 866000, 750000],
+        "used_car_sales": [3200000, 3500000, 3800000, 3600000, 3400000, 3300000],
+        "source": "Gaikindo | 2025年销量约75万辆(-8%)，中国品牌份额13%(翻倍)",
+        "data_quality": "verified_monthly"
+    },
+    "Turkey": {
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "new_car_sales": [762000, 733000, 821000, 1232000, 1240000, 1370000],
+        "used_car_sales": [3800000, 4200000, 4500000, 5200000, 5500000, 5800000],
+        "source": "ODD/ODMD | 2025年销量137万辆(+10.5%)创历史新高",
+        "data_quality": "verified_monthly"
+    },
+    "SaudiArabia": {
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "new_car_sales": [435000, 568000, 630000, 710000, 780000, 830000],
+        "used_car_sales": [1200000, 1350000, 1500000, 1650000, 1750000, 1850000],
+        "source": "芝能汽车+CEIC | 2025年2月7.2万辆(+14%)，丰田26.2%领跑",
+        "data_quality": "estimated_monthly"
+    },
+    "Malaysia": {
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "new_car_sales": [530000, 508000, 720000, 690000, 700000, 780000],
+        "used_car_sales": [2100000, 2000000, 2400000, 2300000, 2350000, 2500000],
+        "source": "MAA | 2025年销量约78万辆(+12%)，超印尼成东南亚第一",
+        "data_quality": "verified_monthly"
+    },
+    "SouthAfrica": {
+        "years": [2020, 2021, 2022, 2023, 2024, 2025],
+        "new_car_sales": [380000, 430000, 480000, 502000, 510000, 530000],
+        "used_car_sales": [1800000, 1950000, 2100000, 2200000, 2300000, 2400000],
+        "source": "NAAMSA | 2025年3月4.9万辆(+12.5%)，中国品牌增长5倍",
+        "data_quality": "verified_monthly"
     }
 }
 
@@ -141,6 +233,13 @@ CHINA_EXPORT_TO_TARGET = {
     "Chile": None,          # 含在南美整体统计中
     "Pakistan": None,       # 未入TOP10
     "Peru": None,           # 未入TOP10
+    "SaudiArabia": 345000,      # 2025年中国出口沙特约34.5万辆(1-2月4.3万辆)
+    "Turkey": 256000,           # 2025年中国出口土耳其约25.6万辆(1-2月3.3万辆)
+    "UAE": 428000,              # 2025年中国出口阿联酋约42.8万辆(1-2月7.1万辆)
+    "Thailand": None,           # 含在东南亚整体统计
+    "Indonesia": None,          # 含在东南亚整体统计
+    "Malaysia": None,           # 含在东南亚整体统计
+    "SouthAfrica": None,        # 含在非洲整体统计
     "source": "乘联分会2025年度汽车出口数据",
     "total_china_export_2025": 8320000,  # 2025年中国汽车出口832万辆
 }
@@ -188,6 +287,42 @@ BRAND_MARKET_SHARE = {
         "shares": [18.5, 13.2, 11.8, 9.2, 7.5, 6.2, 5.1, 4.5, 3.2, 20.8],
         "note": "2024-2025年估算 | 二手车市场主导(新车/二手车≈1:5.7)",
         "source": "ARAPER + 行业估算"
+    },
+    "Thailand": {
+        "brands": ["Toyota", "Honda", "Isuzu", "BYD", "Mitsubishi", "Ford", "MG", "Nissan", "Haval", "Others"],
+        "shares": [36.1, 14.7, 12.8, 6.9, 4.4, 3.5, 3.1, 1.5, 1.4, 15.6],
+        "note": "2025年1月数据 | 丰田领跑 | 中国品牌份额约20.5%(含BYD/MG/Haval等)",
+        "source": "FTI + 芝能汽车"
+    },
+    "Indonesia": {
+        "brands": ["Toyota", "Daihatsu", "Honda", "Mitsubishi", "Suzuki", "Hyundai", "Wuling", "Chery", "BYD", "Others"],
+        "shares": [28.5, 16.2, 10.8, 8.5, 7.2, 5.1, 3.8, 3.2, 2.8, 13.9],
+        "note": "2025年1-10月数据 | 日系仍主导 | 中国品牌份额13%(翻倍增长)",
+        "source": "Gaikindo + 芝能汽车"
+    },
+    "Turkey": {
+        "brands": ["Renault", "Peugeot", "Fiat", "Toyota", "Volkswagen", "Hyundai", "Ford", "Chery", "BYD", "Others"],
+        "shares": [10.3, 9.6, 7.8, 7.2, 6.5, 5.8, 5.2, 3.1, 2.8, 41.7],
+        "note": "2025年3月数据 | 雷诺领跑 | 中国品牌份额约8%(加税后回落)",
+        "source": "ODD + 芝能汽车"
+    },
+    "SaudiArabia": {
+        "brands": ["Toyota", "Hyundai", "Nissan", "Kia", "Ford", "Chevrolet", "Changan", "MG", "Geely", "Others"],
+        "shares": [26.2, 12.5, 9.8, 7.5, 6.2, 5.8, 4.5, 3.8, 3.2, 20.5],
+        "note": "2025年2月数据 | 丰田霸主 | 中国品牌份额约15%(含长安/MG/吉利/捷途等)",
+        "source": "芝能汽车 + 行业报告"
+    },
+    "Malaysia": {
+        "brands": ["Perodua", "Proton", "Toyota", "Honda", "Mazda", "Nissan", "Chery", "Mitsubishi", "BYD", "Others"],
+        "shares": [39.8, 17.6, 14.0, 12.3, 3.5, 2.8, 2.5, 2.1, 1.8, 3.6],
+        "note": "2025年3月数据 | 二汽+宝腾占57.4% | 奇瑞排名上升",
+        "source": "MAA + 芝能汽车"
+    },
+    "SouthAfrica": {
+        "brands": ["Toyota", "Suzuki", "Volkswagen", "Hyundai", "Ford", "Isuzu", "Nissan", "Chery", "Haval", "Others"],
+        "shares": [23.6, 12.3, 11.0, 6.8, 5.5, 5.2, 4.8, 4.2, 3.5, 23.1],
+        "note": "2025年3月数据 | 丰田领跑 | 奇瑞集团(含欧萌达/捷途)总排名第4",
+        "source": "NAAMSA + 芝能汽车"
     }
 }
 
@@ -290,6 +425,90 @@ SUPPLY_CHAIN_RISK = {
             "社会不稳定(政治抗议)影响消费信心与物流",
             "中国品牌渗透率较低，比亚迪等刚进入"
         ]
+    },
+    "Thailand": {
+        "geopolitical_risk": 0.25,
+        "supply_disruption": 0.35,
+        "price_volatility": 0.38,
+        "logistics_risk": 0.30,
+        "regulatory_risk": 0.28,
+        "key_risks": [
+            "汽车贷款审批严格(70%被拒率)持续抑制消费",
+            "皮卡市场萎缩(农业+中小企业需求下降)冲击传统优势",
+            "中国品牌EV快速渗透(份额20.5%)冲击日系供应链格局",
+            "泰铢汇率波动影响出口定价竞争力",
+            "EV转型加速但充电基础设施不足(尤其非曼谷地区)"
+        ]
+    },
+    "Indonesia": {
+        "geopolitical_risk": 0.22,
+        "supply_disruption": 0.38,
+        "price_volatility": 0.42,
+        "logistics_risk": 0.48,
+        "regulatory_risk": 0.30,
+        "key_risks": [
+            "1.7万岛屿物流链路复杂，供应链成本高",
+            "本土化率要求持续提升(政府推行TKDN政策)",
+            "中国品牌份额翻倍(5.8%→13%)引发政策保护风险",
+            "镍矿出口禁令影响电池供应链格局",
+            "rupiah贬值推高CKD组装进口成本"
+        ]
+    },
+    "Turkey": {
+        "geopolitical_risk": 0.55,
+        "supply_disruption": 0.45,
+        "price_volatility": 0.72,
+        "logistics_risk": 0.38,
+        "regulatory_risk": 0.48,
+        "key_risks": [
+            "里拉持续贬值(年通胀60%+)推高进口成本与定价压力",
+            "对中国汽车加征额外关税(2024年起)影响中国品牌竞争力",
+            "欧亚桥梁位置带来地缘风险(俄乌/中东双重影响)",
+            "高利率环境抑制消费信贷",
+            "本土品牌Togg崛起+外资品牌竞争加剧"
+        ]
+    },
+    "SaudiArabia": {
+        "geopolitical_risk": 0.40,
+        "supply_disruption": 0.25,
+        "price_volatility": 0.30,
+        "logistics_risk": 0.20,
+        "regulatory_risk": 0.35,
+        "key_risks": [
+            "100%依赖进口(仅少量CKD组装)，供应链弹性低",
+            "油价波动直接影响政府支出与消费信心",
+            "Vision 2030推动本地化要求提升",
+            "中东地缘政治风险(也门/伊朗/红海航运)",
+            "中国品牌份额快速提升至15%引发市场格局变化"
+        ]
+    },
+    "Malaysia": {
+        "geopolitical_risk": 0.18,
+        "supply_disruption": 0.28,
+        "price_volatility": 0.32,
+        "logistics_risk": 0.25,
+        "regulatory_risk": 0.30,
+        "key_risks": [
+            "本土保护政策(NAP 2020)偏向Perodua/Proton，外资品牌受限",
+            "Bumiputera政策要求本地股权+经销商配额",
+            "东盟内部竞争加剧(泰国/印尼产能溢出)",
+            "EV政策摇摆(免税期不确定)，充电设施不足",
+            "马来西亚林吉特波动影响进口成本"
+        ]
+    },
+    "SouthAfrica": {
+        "geopolitical_risk": 0.35,
+        "supply_disruption": 0.48,
+        "price_volatility": 0.55,
+        "logistics_risk": 0.52,
+        "regulatory_risk": 0.38,
+        "key_risks": [
+            "电力短缺(限电Load-shedding)影响制造与充电基础设施",
+            "兰特汇率波动大(年贬值10-15%)推高进口成本",
+            "本地化率要求(Automotive Production Programme)持续提升",
+            "物流基础设施老化(港口+铁路)制约出口效率",
+            "中国品牌5年增长5倍但品牌认知度与售后服务网络待完善"
+        ]
     }
 }
 
@@ -302,6 +521,12 @@ EV_PENETRATION = {
     "Kazakhstan": 0.025, # 2.5% — 起步阶段
     "Pakistan": 0.005,   # 0.5% — 几乎无纯电市场
     "Peru": 0.032,       # 3.2% — 刚起步
+    "Thailand": 0.222,      # 22.2% — EV爆发(2025年10万辆)，BYD份额6.9%
+    "Indonesia": 0.045,       # 4.5% — 起步阶段，BYD Atto 1热销
+    "Turkey": 0.068,         # 6.8% — 快速增长，Togg+BYD+特斯拉
+    "SaudiArabia": 0.035,    # 3.5% — 刚起步，luxury EV先行
+    "Malaysia": 0.058,       # 5.8% — 政策驱动，BYD/Proton EV
+    "SouthAfrica": 0.022,    # 2.2% — 限电制约，极低基数
 }
 
 
@@ -326,7 +551,14 @@ def get_all_data():
             "ARAPER 秘鲁汽车协会",
             "乘联分会/中汽协 2025年度出口数据",
             "MarkLines 全球汽车产业平台",
-            "芝能汽车/崔东树 行业分析"
+            "芝能汽车/崔东树 行业分析",
+            "FTI 泰国工业联合会月报",
+            "Gaikindo 印尼汽车工业协会数据",
+            "ODD/OSD 土耳其汽车经销商与制造商协会",
+            "NAAMSA 南非汽车制造商协会",
+            "MAA 马来西亚汽车协会",
+            "沙特工业发展基金",
+            "CEIC 全球经济数据库"
         ]
     }
 
