@@ -410,6 +410,29 @@ def run():
     </style>
     """, unsafe_allow_html=True)
 
+    # ======== 侧边栏筛选（必须先于 stats 和卡片） ========
+    with st.sidebar:
+        st.markdown("## 🔍 数据筛选")
+        selected_countries = st.multiselect(
+            "选择目标国家",
+            options=[f"{COUNTRY_CN[c]} ({c})" for c in COUNTRIES],
+            default=[f"{COUNTRY_CN[c]} ({c})" for c in COUNTRIES],
+        )
+
+        show_raw_data = st.checkbox("显示原始数据表", value=False)
+
+        st.divider()
+        st.markdown("### 📚 数据来源")
+        sources = data["data_sources"]
+        for s in sources:
+            st.markdown(f"- {s}")
+
+        st.divider()
+        st.markdown(f"🕐 最后更新: {data['last_updated'][:19]}")
+
+    selected_country_codes = [s.split("(")[-1].rstrip(")") if "(" in s else s for s in selected_countries]
+
+    # 计算筛选后的统计数据
     stats = summary_stats(selected_country_codes)
 
     # ======== 顶部标题 ========
@@ -463,28 +486,6 @@ def run():
         """, unsafe_allow_html=True)
 
     st.divider()
-
-    # ======== 侧边栏筛选 ========
-    with st.sidebar:
-        st.markdown("## 🔍 数据筛选")
-        selected_countries = st.multiselect(
-            "选择目标国家",
-            options=[f"{COUNTRY_CN[c]} ({c})" for c in COUNTRIES],
-            default=[f"{COUNTRY_CN[c]} ({c})" for c in COUNTRIES],
-        )
-
-        show_raw_data = st.checkbox("显示原始数据表", value=False)
-
-        st.divider()
-        st.markdown("### 📚 数据来源")
-        sources = data["data_sources"]
-        for s in sources:
-            st.markdown(f"- {s}")
-
-        st.divider()
-        st.markdown(f"🕐 最后更新: {data['last_updated'][:19]}")
-
-    selected_country_codes = [s.split("(")[-1].rstrip(")") if "(" in s else s for s in selected_countries]
 
     # ======== 主内容区 ========
     tab1, tab2, tab3, tab4 = st.tabs(["📊 产量与销量", "🏷️ 品牌与EV", "⚠️ 供应链风险", "📋 数据明细"])
