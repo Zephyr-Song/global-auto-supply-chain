@@ -29,7 +29,7 @@ COUNTRIES = [
     "Brazil", "Mexico", "Russia", "Chile", "Kazakhstan", "Pakistan", "Peru",
     "Thailand", "Indonesia", "Turkey", "SaudiArabia", "Malaysia", "SouthAfrica"
 ]
-COUNTRY_CN = {c: PROD[c]["country_cn"] for c in COUNTRIES}
+COUNTRY_CN = {c: PROD.get(c, {}).get("country_cn", c) for c in COUNTRIES}
 COUNTRY_COLORS = {
     "Brazil": "#1f77b4", "Mexico": "#ff7f0e", "Russia": "#d62728",
     "Chile": "#2ca02c", "Kazakhstan": "#9467bd", "Pakistan": "#8c564b",
