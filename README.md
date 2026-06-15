@@ -1,92 +1,99 @@
-# 🚗 全球汽车市场调研与跨国供应链风险研究
+# Global Auto Supply Chain Risk Analysis 🚗
 
-> 基于大模型的全球汽车市场数据调研与供应链风险分析系统
+> 西浦校外导师科研项目：全球汽车市场调研与跨国供应链风险研究
 
-## 📋 项目简介
+## 项目概述
 
-本项目是西浦校外导师科研项目，旨在利用大语言模型（LLM）能力，构建全球汽车市场数据调研与跨国供应链风险分析平台。核心方向包括：
+基于大模型的全球汽车市场调研与供应链风险分析系统，覆盖 **7个目标国家**（巴西、墨西哥、俄罗斯、智利、哈萨克斯坦、巴基斯坦、秘鲁），实现数据采集→风险评估→可视化交互的全链路闭环。
 
-- **全球汽车市场数据爬取与整合** — 覆盖欧洲（mobile.de等）、北美、亚太主流汽车交易平台
-- **供应链风险分析与预警** — 基于大模型的智能风险评估与供应链中断预警
-- **可视化交互展示** — 交互式数据仪表盘，支持多维度市场洞察
-- **零碳电力投资系统** — 数据库升级与供应链碳排放追踪
+## 数据来源（全部为公开真实数据）
 
-## 🏗️ 项目结构
+| 来源 | 覆盖国家 | 数据类型 |
+|------|----------|----------|
+| OICA 2025全球报告 | 7国 | 宏观产量/销量 |
+| ANFAVEA 巴西汽车制造商协会 | 巴西 | 月度产销/品牌份额 |
+| AMIA/INEGI 墨西哥汽车工业协会 | 墨西哥 | 月度产销 |
+| AUTOSTAT/AEB 俄罗斯汽车统计局 | 俄罗斯 | 年度产销/品牌份额 |
+| ANAC Chile 智利汽车协会 | 智利 | 月度销量/品牌 |
+| 哈萨克斯坦工业和建设部 | 哈萨克斯坦 | 官方产量数据 |
+| PAMA 巴基斯坦汽车制造商协会 | 巴基斯坦 | 月度销量 |
+| ARAPER 秘鲁汽车协会 | 秘鲁 | 年度销量估算 |
+| 乘联分会/中汽协 | 中国→7国 | 出口数据 |
+| 芝能汽车/崔东树 | 7国 | 品牌份额/行业分析 |
 
-```
-global-auto-supply-chain/
-├── docs/                    # 项目文档
-│   ├── meetings/            # 会议纪要
-│   └── research/            # 调研报告
-├── src/                     # 源代码
-│   ├── crawler/             # 数据爬取模块
-│   ├── analysis/            # 数据分析模块
-│   ├── visualization/       # 可视化模块
-│   └── llm/                 # 大模型集成模块
-├── data/                    # 数据目录
-│   ├── raw/                 # 原始数据
-│   └── processed/           # 处理后数据
-├── notebooks/               # Jupyter notebooks
-├── config/                  # 配置文件
-└── tests/                   # 测试代码
-```
+## 关键数据（2025年）
 
-## 🔧 技术栈
-
-| 类别 | 技术 |
+| 指标 | 数值 |
 |------|------|
-| 爬虫 | Scrapy / Apify / Playwright |
-| 数据处理 | Pandas / Polars |
-| 大模型 | OpenAI API / Claude API / 本地部署 |
-| 可视化 | Plotly / Streamlit / ECharts |
-| 数据库 | PostgreSQL / MongoDB |
-| 部署 | Docker / GitHub Actions |
+| 7国总产量 | ~713万辆 |
+| 7国新车销量 | ~617万辆 |
+| 中国出口7国 | ~173万辆（墨62.3万+俄57.9万+巴32.1万+哈21.1万） |
+| 综合风险最高 | 俄罗斯（0.82） |
+| 综合风险最低 | 智利（0.32） |
+| EV渗透率最高 | 智利7.2% |
+| 中国品牌份额最高 | 俄罗斯进口市场近80% |
 
-## ⚠️ 已知挑战
+## 快速启动
 
-### mobile.de 反爬机制
-- mobile.de 部署了 **Akamai 级别** 的反爬虫防御
-- 完全免费的全自动爬虫服务几乎不存在
-- 建议方案：Apify 免费额度 / 半自动化浏览器插件 / 官方API
-
-## 📅 里程碑
-
-| 日期 | 里程碑 |
-|------|--------|
-| 2026-05-17 | 项目启动会，明确目标与分工 |
-| 2026-06-15 | 正式启动开发 |
-| 2026-06-13 | 进展同步会，讨论反爬突破方案 |
-| TBD | Phase 1: 数据爬取管线搭建 |
-| TBD | Phase 2: LLM分析模块开发 |
-| TBD | Phase 3: 可视化与交互展示 |
-
-## 👥 协作机制
-
-- **同步频率**: 每3天一次进展同步
-- **代码管理**: GitHub PR + Review
-- **文档规范**: 所有决策写入 docs/meetings/
-
-## 🚀 快速开始
+### 1. 交互式仪表盘（Streamlit）
 
 ```bash
-# 克隆仓库
-git clone https://github.com/Zephyr-Song/global-auto-supply-chain.git
-cd global-auto-supply-chain
-
-# 安装依赖
-pip install -r requirements.txt
-
-# 配置环境变量
-cp config/.env.example config/.env
-# 编辑 config/.env 填入API密钥
-
-# 运行爬虫（示例）
-python -m src.crawler.mobile_de
-
-# 启动可视化
+pip install streamlit plotly pandas
 streamlit run src/visualization/dashboard.py
 ```
 
-## 📄 许可
+浏览器打开 `http://localhost:8501`
 
-本项目为学术研究用途。
+### 2. 静态HTML仪表盘
+
+直接打开 `docs/dashboard.html`（69KB，Plotly CDN加载，无需安装）
+
+### 3. 原始数据
+
+```bash
+python src/analysis/market_data.py
+# 输出: data/processed/global_auto_market_data.json
+```
+
+## 仪表盘功能
+
+- 📊 **产量趋势图** — 5国2020-2025产量对比（智利/秘鲁无本土制造）
+- 📈 **销量趋势图** — 7国新车+二手车双面板
+- 🏷️ **品牌市场份额** — 7国环形图，标注中国品牌位置
+- 🔋 **电动车渗透率** — 条形图排序对比
+- 🇨🇳 **中国出口目标国** — TOP4出口量（总出口832万辆）
+- ⚠️ **供应链风险雷达** — 5维度对比（地缘/供应/价格/物流/监管）
+- 🔥 **风险热力图** — 矩阵视图，颜色映射风险等级
+
+## 项目结构
+
+```
+global-auto-supply-chain/
+├── src/
+│   ├── analysis/
+│   │   └── market_data.py          # 真实数据采集+处理模块
+│   ├── visualization/
+│   │   └── dashboard.py            # Streamlit交互式仪表盘
+│   │   └── __init__.py
+│   └── crawler/                    # mobile.de爬虫（Apify方案待实施）
+├── data/
+│   └ processed/
+│   │   └ global_auto_market_data.json
+├── docs/
+│   └ dashboard.html               # 静态可视化备份
+├── README.md
+```
+
+## 技术挑战
+
+- **mobile.de反爬**：Akamai级别防护（动态住宅IP+浏览器指纹），建议Apify/Decodo或半自动化插件
+- **数据采集**：Statista/CEIC等付费源不可用，已转向各国协会公开数据
+- **俄罗斯数据**：受制裁影响，部分数据需估算推算
+
+## 协作机制
+
+每3天同步一次（项目会议纪要约定）
+
+---
+
+GitHub: https://github.com/Zephyr-Song/global-auto-supply-chain
