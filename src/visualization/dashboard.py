@@ -53,7 +53,7 @@ def fig_production_trend(active=None):
     fig = go.Figure()
     for c in active:
         p = PROD[c]
-        if all(v > 0 for v in p["production"]):
+        if any(v > 0 for v in p["production"]):
             fig.add_trace(go.Scatter(
                 x=p["years"], y=p["production"],
                 mode="lines+markers",
@@ -89,7 +89,8 @@ def fig_sales_trend(active=None):
             x=s["years"], y=s["new_car_sales"],
             mode="lines+markers",
             name=COUNTRY_CN[c],
-            line=dict(color=COUNTRY_COLORS[c], width=2),
+            line=dict(color=COUNTRY_COLORS[c], width=2.5),
+            marker=dict(size=5),
             hovertemplate="%{y:,.0f} 辆",
             showlegend=True
         ), row=1, col=1)
@@ -491,13 +492,24 @@ def run():
     tab1, tab2, tab3, tab4 = st.tabs(["📊 产量与销量", "🏷️ 品牌与EV", "⚠️ 供应链风险", "📋 数据明细"])
 
     with tab1:
+        # 产量趋势图
         col1, col2 = st.columns(2)
         with col1:
-            st.plotly_chart(fig_production_trend(selected_country_codes), use_container_width=True)
+            log_prod = st.checkbox("对数坐标（对比小国产量）", value=False, key="log_prod")
+            prod_fig = fig_production_trend(selected_country_codes)
+            if log_prod:
+                prod_fig.update_yaxes(type="log")
+            st.plotly_chart(prod_fig, use_container_width=True)
         with col2:
             st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
 
-        st.plotly_chart(fig_sales_trend(selected_country_codes), use_container_width=True)
+        # 销量趋势图
+        log_sales = st.checkbox("对数坐标（对比小国销量）", value=False, key="log_sales")
+        sales_fig = fig_sales_trend(selected_country_codes)
+        if log_sales:
+            sales_fig.update_yaxes(type="log", row=1, col=1)
+            sales_fig.update_yaxes(type="log", row=2, col=1)
+        st.plotly_chart(sales_fig, use_container_width=True)
 
     with tab2:
         col1, col2 = st.columns([3, 2])
