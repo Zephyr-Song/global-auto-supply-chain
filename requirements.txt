@@ -1,3 +1,8 @@
 streamlit>=1.30.0
 pandas>=2.0.0
 plotly>=5.18.0
+
+# 爬虫依赖（可选，需海外网络环境）
+# scrapling[all]>=0.4.0    # 核心爬虫框架
+# patchright>=1.60.0       # StealthyFetcher 浏览器驱动
+# apify-client>=1.0.0      # Apify 云爬虫备选

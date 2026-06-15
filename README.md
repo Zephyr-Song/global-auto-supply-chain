@@ -90,7 +90,11 @@ global-auto-supply-chain/
 │   ├── visualization/
 │   │   ├── dashboard.py            # Streamlit交互式仪表盘（13国）
 │   │   └── __init__.py
-│   └── crawler/                    # mobile.de爬虫（Apify方案待实施）
+│   ├── crawler/
+│   │   ├── base.py                # 爬虫基类（Scrapling框架）
+│   │   ├── scrapling_crawler.py   # Scrapling爬虫（4站点：mobile.de/OLX/sahibinden/otomoto）
+│   │   ├── apify_crawler.py       # Apify云爬虫备选方案
+│   │   └── __init__.py
 ├── data/
 │   └ processed/
 │   │   └ global_auto_market_data.json
@@ -99,16 +103,61 @@ global-auto-supply-chain/
 │   ├── dashboard_13countries.png   # 13国仪表盘截图
 │   ├── 有免费的爬虫服务可以来做吗.docx
 │   └── 能帮忙看一下 mobile.de 网站是否有反扒机制.docx
+├── scripts/
+│   └── run_crawlers.py            # 一键爬虫运行脚本
 ├── README.md
 └── requirements.txt
 ```
 
+## 爬虫使用指南
+
+### 环境要求
+- **海外网络环境**（VPN或海外服务器），国内网络无法访问大部分目标站点
+- Python 3.10+
+
+### 安装
+```bash
+pip install scrapling[all]          # 核心爬虫框架
+patchright install                  # 下载浏览器驱动（首次运行）
+pip install apify-client            # Apify备选（可选）
+```
+
+### 运行
+```bash
+# 检查环境
+python scripts/run_crawlers.py --check
+
+# 列出支持站点
+python scripts/run_crawlers.py --list
+
+# 爬取 mobile.de
+python scripts/run_crawlers.py --site mobile.de --query "BYD" --pages 2
+
+# 爬取 OLX 巴西
+python scripts/run_crawlers.py --site olx_br --query "Chery" --pages 1
+
+# 使用 Apify（需设置 APIFY_TOKEN 环境变量）
+python scripts/run_crawlers.py --apify --site mobile.de --query "VW Golf"
+
+# 一键全量爬取
+python scripts/run_crawlers.py --all
+```
+
+### 支持的站点
+| 站点 | 国家 | 反爬级别 | 推荐策略 |
+|------|------|----------|----------|
+| mobile.de | 德国 | Akamai | StealthyFetcher / Apify |
+| olx.com.br | 巴西 | Cloudflare | StealthyFetcher |
+| sahibinden.com | 土耳其 | Cloudflare | Fetcher+StealthyFetcher |
+| otomoto.pl | 波兰 | Cloudflare | StealthyFetcher |
+
 ## 技术挑战
 
-- **mobile.de反爬**：Akamai级别防护（动态住宅IP+浏览器指纹），建议Apify/Decodo或半自动化插件
+- **mobile.de反爬**：Akamai级别防护，StealthyFetcher可绕过（需海外环境），Apify作为备选
 - **数据采集**：Statista/CEIC等付费源不可用，已转向各国协会公开数据
 - **俄罗斯数据**：受制裁影响，部分数据需估算推算
 - **沙特数据**：无本土制造，仅CKD组装，大部分数据依赖行业报告估算
+- **国内网络限制**：浏览器级爬取海外站点需VPN，否则超时/被拦截
 
 ## 协作机制
 
