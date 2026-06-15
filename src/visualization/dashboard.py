@@ -53,15 +53,22 @@ def fig_production_trend(active=None):
     fig = go.Figure()
     for c in active:
         p = PROD[c]
-        if any(v > 0 for v in p["production"]):
-            fig.add_trace(go.Scatter(
-                x=p["years"], y=p["production"],
-                mode="lines+markers",
-                name=f"{p['country_cn']} ({c})",
-                line=dict(color=COUNTRY_COLORS[c], width=2.5),
-                marker=dict(size=6),
-                hovertemplate="%{y:,.0f} 辆"
-            ))
+        has_production = any(v > 0 for v in p["production"])
+        # 对数坐标下0无定义，用None替代0值让线断开
+        y_vals = [v if v > 0 else None for v in p["production"]]
+        fig.add_trace(go.Scatter(
+            x=p["years"], y=y_vals,
+            mode="lines+markers",
+            name=f"{p['country_cn']} ({c})" + (" ⚠无本土制造" if not has_production else ""),
+            line=dict(
+                color=COUNTRY_COLORS[c],
+                width=2.5 if has_production else 1.5,
+                dash="solid" if has_production else "dash",
+            ),
+            marker=dict(size=6 if has_production else 4),
+            hovertemplate="%{y:,.0f} 辆",
+            opacity=1.0 if has_production else 0.5,
+        ))
     fig.update_layout(
         title=dict(text="📊 目标国汽车产量趋势 (2020-2025)", font=dict(size=18)),
         xaxis=dict(title="年份", dtick=1),
@@ -495,7 +502,7 @@ def run():
         # 产量趋势图
         col1, col2 = st.columns(2)
         with col1:
-            log_prod = st.checkbox("对数坐标（对比小国产量）", value=False, key="log_prod")
+            log_prod = st.checkbox("对数坐标（对比小国产量）", value=True, key="log_prod")
             prod_fig = fig_production_trend(selected_country_codes)
             if log_prod:
                 prod_fig.update_yaxes(type="log")
@@ -504,7 +511,7 @@ def run():
             st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
 
         # 销量趋势图
-        log_sales = st.checkbox("对数坐标（对比小国销量）", value=False, key="log_sales")
+        log_sales = st.checkbox("对数坐标（对比小国销量）", value=True, key="log_sales")
         sales_fig = fig_sales_trend(selected_country_codes)
         if log_sales:
             sales_fig.update_yaxes(type="log", row=1, col=1)
