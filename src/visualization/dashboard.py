@@ -47,10 +47,11 @@ COUNTRY_COLORS = {c: _BASE_COLORS[i % len(_BASE_COLORS)] for i, c in enumerate(C
 # 图表构建函数
 # ============================================================
 
-def fig_production_trend():
+def fig_production_trend(active=None):
     """产量趋势图"""
+    active = active or COUNTRIES
     fig = go.Figure()
-    for c in COUNTRIES:
+    for c in active:
         p = PROD[c]
         if all(v > 0 for v in p["production"]):
             fig.add_trace(go.Scatter(
@@ -73,15 +74,16 @@ def fig_production_trend():
     return fig
 
 
-def fig_sales_trend():
+def fig_sales_trend(active=None):
     """销量趋势图 — 新车+二手车"""
+    active = active or COUNTRIES
     fig = make_subplots(
         rows=2, cols=1,
         shared_xaxes=True,
         subplot_titles=("新车销量", "二手车销量"),
         vertical_spacing=0.12
     )
-    for c in COUNTRIES:
+    for c in active:
         s = SALES[c]
         fig.add_trace(go.Scatter(
             x=s["years"], y=s["new_car_sales"],
@@ -113,9 +115,10 @@ def fig_sales_trend():
     return fig
 
 
-def fig_brand_share():
-    """品牌市场份额（环形图）— 13国 3x5布局"""
-    n = len(COUNTRIES)
+def fig_brand_share(active=None):
+    """品牌市场份额（环形图）"""
+    active = active or COUNTRIES
+    n = len(active)
     n_cols = 5
     n_rows = (n + n_cols - 1) // n_cols  # ceil division
     specs = [[{"type": "domain"}] * n_cols for _ in range(n_rows)]
@@ -132,7 +135,7 @@ def fig_brand_share():
         horizontal_spacing=0.02,
     )
 
-    for i, c in enumerate(COUNTRIES):
+    for i, c in enumerate(active):
         r = (i // n_cols) + 1
         col = (i % n_cols) + 1
         b = BRANDS[c]
@@ -156,9 +159,11 @@ def fig_brand_share():
     return fig
 
 
-def fig_ev_penetration():
+def fig_ev_penetration(active=None):
     """电动车渗透率 — 条形图"""
-    sorted_items = sorted(EV.items(), key=lambda x: x[1], reverse=True)
+    active = active or COUNTRIES
+    ev_filtered = {k: v for k, v in EV.items() if k in active}
+    sorted_items = sorted(ev_filtered.items(), key=lambda x: x[1], reverse=True)
     countries = [k for k, _ in sorted_items]
     values = [v * 100 for _, v in sorted_items]
     colors = [COUNTRY_COLORS[c] for c in countries]
@@ -181,10 +186,13 @@ def fig_ev_penetration():
     return fig
 
 
-def fig_china_export():
-    """中国出口到目标国 — 条形图（含所有有数据的出口目的地）"""
+def fig_china_export(active=None):
+    """中国出口到目标国 — 条形图"""
+    active = active or COUNTRIES
     meta_keys = {'total_china_export_2025', 'source'}
-    export_data = [(k, v) for k, v in EXPORT.items() if isinstance(v, (int, float)) and k not in meta_keys]
+    # 只显示选中的国家 + UAE（如果被选中）
+    active_set = set(active)
+    export_data = [(k, v) for k, v in EXPORT.items() if isinstance(v, (int, float)) and k not in meta_keys and k in active_set]
     export_data.sort(key=lambda x: x[1], reverse=True)
     cn_names = {c: COUNTRY_CN[c] for c in COUNTRIES}
     cn_names["UAE"] = "阿联酋"
@@ -213,14 +221,14 @@ def fig_china_export():
     return fig
 
 
-def fig_supply_chain_radar():
+def fig_supply_chain_radar(active=None):
     """供应链风险雷达图"""
+    active = active or COUNTRIES
     risk_dims = ["geopolitical_risk", "supply_disruption", "price_volatility", "logistics_risk", "regulatory_risk"]
     dim_labels = ["地缘政治", "供应中断", "价格波动", "物流风险", "监管风险"]
-    dim_labels_en = ["Geopolitical", "Supply", "Price", "Logistics", "Regulatory"]
 
     fig = go.Figure()
-    for c in COUNTRIES:
+    for c in active:
         r = RISK[c]
         values = [r[d] for d in risk_dims]
         # 闭合
@@ -250,20 +258,21 @@ def fig_supply_chain_radar():
     return fig
 
 
-def fig_risk_heatmap():
+def fig_risk_heatmap(active=None):
     """供应链风险热力图"""
+    active = active or COUNTRIES
     risk_dims = ["geopolitical_risk", "supply_disruption", "price_volatility", "logistics_risk", "regulatory_risk"]
     dim_labels = ["地缘政治", "供应中断", "价格波动", "物流风险", "监管风险"]
 
     z_values = []
-    for c in COUNTRIES:
+    for c in active:
         r = RISK[c]
         z_values.append([r[d] for d in risk_dims])
 
     fig = go.Figure(data=go.Heatmap(
         z=z_values,
         x=dim_labels,
-        y=[COUNTRY_CN[c] for c in COUNTRIES],
+        y=[COUNTRY_CN[c] for c in active],
         colorscale="RdYlGn_r",
         texttemplate="%{z:.0%}",
         textfont=dict(size=11),
@@ -281,10 +290,11 @@ def fig_risk_heatmap():
     return fig
 
 
-def table_country_overview():
+def table_country_overview(active=None):
     """国家概览表"""
+    active = active or COUNTRIES
     rows = []
-    for c in COUNTRIES:
+    for c in active:
         p = PROD[c]
         s = SALES[c]
         prod_latest = p["production"][-1]
@@ -309,11 +319,12 @@ def table_country_overview():
     return pd.DataFrame(rows)
 
 
-def table_supply_chain_risks():
+def table_supply_chain_risks(active=None):
     """供应链风险详情表"""
+    active = active or COUNTRIES
     rows = []
     risk_dims = ["geopolitical_risk", "supply_disruption", "price_volatility", "logistics_risk", "regulatory_risk"]
-    for c in COUNTRIES:
+    for c in active:
         r = RISK[c]
         for risk_text in r["key_risks"]:
             rows.append({
@@ -345,24 +356,26 @@ def table_china_exports():
     return pd.DataFrame(rows)
 
 
-def summary_stats():
+def summary_stats(active=None):
     """关键统计摘要"""
-    total_prod = sum(p["production"][-1] for _, p in PROD.items() if p["production"][-1] > 0)
-    total_sales = sum(s["new_car_sales"][-1] for _, s in SALES.items())
-    # 排除元数据键
+    active = active or COUNTRIES
+    total_prod = sum(PROD[c]["production"][-1] for c in active if PROD[c]["production"][-1] > 0)
+    total_sales = sum(SALES[c]["new_car_sales"][-1] for c in active)
     meta_keys = {'total_china_export_2025', 'source'}
-    total_export = sum(v for k, v in EXPORT.items() if isinstance(v, (int, float)) and k not in meta_keys)
+    active_set = set(active)
+    total_export = sum(v for k, v in EXPORT.items() if isinstance(v, (int, float)) and k not in meta_keys and k in active_set)
 
-    prod_with_manu = [COUNTRY_CN[c] for c in COUNTRIES if PROD[c]["production"][-1] > 0]
+    prod_with_manu = [COUNTRY_CN[c] for c in active if PROD[c]["production"][-1] > 0]
     risk_dims = ["geopolitical_risk", "supply_disruption", "price_volatility", "logistics_risk", "regulatory_risk"]
     def avg_risk(c): return sum(RISK[c][d] for d in risk_dims) / len(risk_dims)
-    max_risk_country = max(COUNTRIES, key=avg_risk)
-    min_risk_country = min(COUNTRIES, key=avg_risk)
+    max_risk_country = max(active, key=avg_risk)
+    min_risk_country = min(active, key=avg_risk)
 
     return {
         "total_production": total_prod,
         "total_sales": total_sales,
         "total_china_export": total_export,
+        "n_countries": len(active),
         "prod_countries": ", ".join(prod_with_manu),
         "max_risk": COUNTRY_CN[max_risk_country],
         "min_risk": COUNTRY_CN[min_risk_country],
@@ -397,13 +410,14 @@ def run():
     </style>
     """, unsafe_allow_html=True)
 
-    stats = summary_stats()
+    stats = summary_stats(selected_country_codes)
 
     # ======== 顶部标题 ========
     st.markdown('<p class="main-header">🚗 全球汽车市场供应链风险看板</p>', unsafe_allow_html=True)
+    n_sel = len(selected_country_codes)
     st.markdown(
         f'<p class="sub-header">'
-        f'覆盖国家：巴西 · 墨西哥 · 俄罗斯 · 智利 · 哈萨克斯坦 · 巴基斯坦 · 秘鲁 · 泰国 · 印尼 · 土耳其 · 沙特 · 马来西亚 · 南非 ｜ '
+        f'当前筛选：{n_sel}个国家 ｜ '
         f'数据来源：OICA · ANFAVEA · AMIA · AEB · FTI · Gaikindo · ODD · NAAMSA · MAA · 乘联分会 ｜ '
         f'更新：2025年数据'
         f'</p>',
@@ -416,35 +430,35 @@ def run():
         st.markdown(f"""
         <div class="stat-card">
             <div class="stat-value">{stats['total_production']/10000:.0f}万</div>
-            <div class="stat-label">2025年13国总产量</div>
+            <div class="stat-label">{n_sel}国总产量(2025)</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
         <div class="stat-card">
             <div class="stat-value">{stats['total_sales']/10000:.0f}万</div>
-            <div class="stat-label">2025年13国新车销量</div>
+            <div class="stat-label">{n_sel}国新车销量(2025)</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
         <div class="stat-card">
             <div class="stat-value">{stats['total_china_export']/10000:.0f}万</div>
-            <div class="stat-label">2025年中国出口目标国</div>
+            <div class="stat-label">中国出口筛选国(2025)</div>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
         <div class="stat-card">
             <div class="stat-value">{stats['max_risk']}</div>
-            <div class="stat-label">综合风险最高国家</div>
+            <div class="stat-label">风险最高(筛选内)</div>
         </div>
         """, unsafe_allow_html=True)
     with col5:
         st.markdown(f"""
         <div class="stat-card">
             <div class="stat-value">{stats['min_risk']}</div>
-            <div class="stat-label">综合风险最低国家</div>
+            <div class="stat-label">风险最低(筛选内)</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -478,38 +492,34 @@ def run():
     with tab1:
         col1, col2 = st.columns(2)
         with col1:
-            st.plotly_chart(fig_production_trend(), use_container_width=True)
+            st.plotly_chart(fig_production_trend(selected_country_codes), use_container_width=True)
         with col2:
-            st.plotly_chart(fig_china_export(), use_container_width=True)
+            st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
 
-        st.plotly_chart(fig_sales_trend(), use_container_width=True)
+        st.plotly_chart(fig_sales_trend(selected_country_codes), use_container_width=True)
 
     with tab2:
         col1, col2 = st.columns([3, 2])
         with col1:
-            st.plotly_chart(fig_brand_share(), use_container_width=True)
+            st.plotly_chart(fig_brand_share(selected_country_codes), use_container_width=True)
         with col2:
-            st.plotly_chart(fig_ev_penetration(), use_container_width=True)
+            st.plotly_chart(fig_ev_penetration(selected_country_codes), use_container_width=True)
 
     with tab3:
         col1, col2 = st.columns(2)
         with col1:
-            st.plotly_chart(fig_supply_chain_radar(), use_container_width=True)
+            st.plotly_chart(fig_supply_chain_radar(selected_country_codes), use_container_width=True)
         with col2:
-            st.plotly_chart(fig_risk_heatmap(), use_container_width=True)
+            st.plotly_chart(fig_risk_heatmap(selected_country_codes), use_container_width=True)
 
         # 风险详情表
         st.subheader("📝 各国供应链关键风险")
-        risk_df = table_supply_chain_risks()
-        if selected_country_codes:
-            risk_df = risk_df[risk_df["国家"].isin([COUNTRY_CN[c] for c in selected_country_codes])]
+        risk_df = table_supply_chain_risks(selected_country_codes)
         st.dataframe(risk_df, use_container_width=True, height=400)
 
     with tab4:
         st.subheader("📋 国家概览表")
-        overview_df = table_country_overview()
-        if selected_country_codes:
-            overview_df = overview_df[overview_df["国家"].isin([COUNTRY_CN[c] for c in selected_country_codes])]
+        overview_df = table_country_overview(selected_country_codes)
         st.dataframe(overview_df, use_container_width=True, hide_index=True)
 
         st.subheader("🇨🇳 中国出口目标国")
