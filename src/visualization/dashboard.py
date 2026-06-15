@@ -24,19 +24,23 @@ RISK = data["supply_chain_risk"]
 EV = data["ev_penetration"]
 EXPORT = data["china_export"]
 
-# 国家顺序（统一）— 13国
-COUNTRIES = [
+# 国家顺序（统一）— 从数据动态生成，确保只在所有数据集都存在的国家才展示
+_ALL_COUNTRIES = [
     "Brazil", "Mexico", "Russia", "Chile", "Kazakhstan", "Pakistan", "Peru",
     "Thailand", "Indonesia", "Turkey", "SaudiArabia", "Malaysia", "SouthAfrica"
 ]
-COUNTRY_CN = {c: PROD.get(c, {}).get("country_cn", c) for c in COUNTRIES}
-COUNTRY_COLORS = {
-    "Brazil": "#1f77b4", "Mexico": "#ff7f0e", "Russia": "#d62728",
-    "Chile": "#2ca02c", "Kazakhstan": "#9467bd", "Pakistan": "#8c564b",
-    "Peru": "#e377c2", "Thailand": "#17becf", "Indonesia": "#bcbd22",
-    "Turkey": "#e74c3c", "SaudiArabia": "#27ae60", "Malaysia": "#3498db",
-    "SouthAfrica": "#f39c12"
-}
+COUNTRIES = [c for c in _ALL_COUNTRIES
+             if c in PROD and c in SALES and c in BRANDS and c in RISK and c in EV]
+
+COUNTRY_CN = {c: PROD[c].get("country_cn", c) for c in COUNTRIES}
+
+# 默认颜色池，超出时自动循环
+_BASE_COLORS = [
+    "#1f77b4", "#ff7f0e", "#d62728", "#2ca02c", "#9467bd", "#8c564b",
+    "#e377c2", "#17becf", "#bcbd22", "#e74c3c", "#27ae60", "#3498db",
+    "#f39c12",
+]
+COUNTRY_COLORS = {c: _BASE_COLORS[i % len(_BASE_COLORS)] for i, c in enumerate(COUNTRIES)}
 
 
 # ============================================================
