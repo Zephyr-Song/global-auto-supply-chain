@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from analysis.market_data import get_all_data
+from analysis.market_data import get_all_data, SOURCE_URLS
 
 # 初始化数据
 data = get_all_data()
@@ -43,6 +43,22 @@ _BASE_COLORS = [
 COUNTRY_COLORS = {c: _BASE_COLORS[i % len(_BASE_COLORS)] for i, c in enumerate(COUNTRIES)}
 
 
+def source_caption(sources):
+    """生成数据来源标注的HTML"""
+    links = []
+    for s in sources:
+        if isinstance(s, dict) and "url" in s:
+            links.append('<a href="{}" target="_blank">{}</a>'.format(s["url"], s["name"]))
+        elif isinstance(s, dict):
+            links.append(s.get("name", str(s)))
+        elif isinstance(s, str) and s in SOURCE_URLS:
+            info = SOURCE_URLS[s]
+            links.append('<a href="{}" target="_blank">{}</a>'.format(info["url"], info["name"]))
+        else:
+            links.append(str(s))
+    return '<p style="font-size:11px;color:#888;">数据来源：' + ' · '.join(links) + '</p>'
+
+
 # ============================================================
 # 图表构建函数
 # ============================================================
@@ -51,30 +67,38 @@ def fig_production_trend(active=None):
     """产量趋势图"""
     active = active or COUNTRIES
     fig = go.Figure()
+    no_production_countries = []
     for c in active:
         p = PROD[c]
         has_production = any(v > 0 for v in p["production"])
+        if not has_production:
+            no_production_countries.append(p['country_cn'])
+            continue
         # 对数坐标下0无定义，用None替代0值让线断开
         y_vals = [v if v > 0 else None for v in p["production"]]
         fig.add_trace(go.Scatter(
             x=p["years"], y=y_vals,
             mode="lines+markers",
-            name=f"{p['country_cn']} ({c})" + (" ⚠无本土制造" if not has_production else ""),
-            line=dict(
-                color=COUNTRY_COLORS[c],
-                width=2.5 if has_production else 1.5,
-                dash="solid" if has_production else "dash",
-            ),
-            marker=dict(size=6 if has_production else 4),
+            name=f"{p['country_cn']} ({c})",
+            line=dict(color=COUNTRY_COLORS[c], width=2.5),
+            marker=dict(size=6),
             hovertemplate="%{y:,.0f} 辆",
-            opacity=1.0 if has_production else 0.5,
         ))
+    # 零产量国家用文字标注
+    if no_production_countries:
+        fig.add_annotation(
+            xref="paper", yref="paper",
+            x=0.5, y=-0.12,
+            text=f"⚠ 无本土制造: {', '.join(no_production_countries)}",
+            showarrow=False,
+            font=dict(size=12, color="#e74c3c"),
+        )
     fig.update_layout(
         title=dict(text="📊 目标国汽车产量趋势 (2020-2025)", font=dict(size=18)),
         xaxis=dict(title="年份", dtick=1),
         yaxis=dict(title="产量 (辆)", tickformat=","),
         hovermode="x unified",
-        legend=dict(orientation="h", y=-0.15),
+        legend=dict(orientation="h", y=-0.20),
         template="plotly_white",
         height=500,
     )
@@ -433,7 +457,12 @@ def run():
         st.markdown("### 📚 数据来源")
         sources = data["data_sources"]
         for s in sources:
-            st.markdown(f"- {s}")
+            if isinstance(s, dict) and "url" in s:
+                st.markdown(f'- [{s["name"]}]({s["url"]})')
+            elif isinstance(s, dict):
+                st.markdown(f'- {s.get("name", s)}')
+            else:
+                st.markdown(f'- {s}')
 
         st.divider()
         st.markdown(f"🕐 最后更新: {data['last_updated'][:19]}")
@@ -507,8 +536,10 @@ def run():
             if log_prod:
                 prod_fig.update_yaxes(type="log")
             st.plotly_chart(prod_fig, use_container_width=True)
+            st.markdown(source_caption(["OICA", "ANFAVEA", "AMIA", "AUTOSTAT"]), unsafe_allow_html=True)
         with col2:
             st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
+            st.markdown(source_caption(["CPCA", "CAAM"]), unsafe_allow_html=True)
 
         # 销量趋势图
         log_sales = st.checkbox("对数坐标（对比小国销量）", value=True, key="log_sales")
@@ -517,13 +548,16 @@ def run():
             sales_fig.update_yaxes(type="log", row=1, col=1)
             sales_fig.update_yaxes(type="log", row=2, col=1)
         st.plotly_chart(sales_fig, use_container_width=True)
+        st.markdown(source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "PAMA", "ARAPER", "FTI", "Gaikindo"]), unsafe_allow_html=True)
 
     with tab2:
         col1, col2 = st.columns([3, 2])
         with col1:
             st.plotly_chart(fig_brand_share(selected_country_codes), use_container_width=True)
+            st.markdown(source_caption(["MarkLines", "ANFAVEA", "AMIA", "AUTOSTAT"]), unsafe_allow_html=True)
         with col2:
             st.plotly_chart(fig_ev_penetration(selected_country_codes), use_container_width=True)
+            st.markdown(source_caption(["MarkLines", "CEIC"]), unsafe_allow_html=True)
 
     with tab3:
         col1, col2 = st.columns(2)
@@ -531,6 +565,7 @@ def run():
             st.plotly_chart(fig_supply_chain_radar(selected_country_codes), use_container_width=True)
         with col2:
             st.plotly_chart(fig_risk_heatmap(selected_country_codes), use_container_width=True)
+        st.markdown(source_caption(["CEIC", "MarkLines"]), unsafe_allow_html=True)
 
         # 风险详情表
         st.subheader("📝 各国供应链关键风险")

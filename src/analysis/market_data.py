@@ -33,6 +33,33 @@ from datetime import datetime
 # 真实汽车市场数据 — 基于各协会/机构公开报告
 # ============================================================
 
+# ============================================================
+# 数据来源 URL 索引
+# ============================================================
+SOURCE_URLS = {
+    "OICA": {"name": "OICA 全球汽车产销报告", "url": "https://www.oica.net/category/production-statistics/"},
+    "ANFAVEA": {"name": "ANFAVEA 巴西汽车制造商协会", "url": "https://anfavea.com.br/"},
+    "AMIA": {"name": "AMIA 墨西哥汽车工业协会", "url": "https://amia.com.mx/"},
+    "INEGI": {"name": "INEGI 墨西哥国家统计地理研究所", "url": "https://www.inegi.org.mx/"},
+    "AUTOSTAT": {"name": "AUTOSTAT 俄罗斯汽车统计局", "url": "https://www.autostat.ru/"},
+    "AEB": {"name": "AEB 俄罗斯欧洲企业协会", "url": "https://www.aebrus.ru/"},
+    "ANAC": {"name": "ANAC 智利汽车协会", "url": "https://www.anac.cl/"},
+    "KazAuto": {"name": "KazAuto 哈萨克斯坦汽车工业协会", "url": "https://kazautoindustry.kz/"},
+    "PAMA": {"name": "PAMA 巴基斯坦汽车制造商协会", "url": "https://www.pama.org.pk/"},
+    "ARAPER": {"name": "ARAPER 秘鲁汽车协会", "url": "https://araper.org.pe/"},
+    "FTI": {"name": "FTI 泰国工业联合会", "url": "https://www.fti.or.th/"},
+    "Gaikindo": {"name": "Gaikindo 印尼汽车工业协会", "url": "https://www.gaikindo.or.id/"},
+    "ODD": {"name": "ODD 土耳其汽车经销商协会", "url": "https://www.oddd.org.tr/"},
+    "NAAMSA": {"name": "NAAMSA 南非汽车制造商协会", "url": "https://www.naamsa.co.za/"},
+    "MAA": {"name": "MAA 马来西亚汽车协会", "url": "https://www.maa.org.my/"},
+    "SaudiIDF": {"name": "沙特工业发展基金", "url": "https://www.sidf.gov.sa/"},
+    "MarkLines": {"name": "MarkLines 全球汽车产业平台", "url": "https://www.marklines.com/"},
+    "CPCA": {"name": "乘联分会 中国汽车流通协会", "url": "https://www.cpcaauto.com/"},
+    "CAAM": {"name": "中汽协 中国汽车工业协会", "url": "https://www.caam.org.cn/"},
+    "CEIC": {"name": "CEIC 全球经济数据库", "url": "https://www.ceicdata.com/"},
+    "Zhinen": {"name": "芝能汽车 行业分析", "url": "https://www.zhinengauto.com/"},
+}
+
 PRODUCTION_DATA = {
     "Brazil": {
         "country_cn": "巴西",
@@ -541,25 +568,25 @@ def get_all_data():
         "ev_penetration": EV_PENETRATION,
         "last_updated": datetime.now().isoformat(),
         "data_sources": [
-            "OICA 2025全球产销报告 (2026年4月23日发布)",
-            "ANFAVEA 巴西全国汽车制造商协会月报",
-            "AMIA/INEGI 墨西哥汽车工业协会数据",
-            "AUTOSTAT/AEB 俄罗斯汽车统计局",
-            "ANAC Chile 智利汽车协会",
-            "哈萨克斯坦工业和建设部官方数据",
-            "PAMA 巴基斯坦汽车制造商协会月报",
-            "ARAPER 秘鲁汽车协会",
-            "乘联分会/中汽协 2025年度出口数据",
-            "MarkLines 全球汽车产业平台",
-            "芝能汽车/崔东树 行业分析",
-            "FTI 泰国工业联合会月报",
-            "Gaikindo 印尼汽车工业协会数据",
-            "ODD/OSD 土耳其汽车经销商与制造商协会",
-            "NAAMSA 南非汽车制造商协会",
-            "MAA 马来西亚汽车协会",
-            "沙特工业发展基金",
-            "CEIC 全球经济数据库"
-        ]
+            {"name": "OICA 2025全球产销报告 (2026年4月23日发布)", "url": "https://www.oica.net/category/production-statistics/"},
+            {"name": "ANFAVEA 巴西汽车制造商协会月报", "url": "https://anfavea.com.br/"},
+            {"name": "AMIA/INEGI 墨西哥汽车工业协会数据", "url": "https://amia.com.mx/"},
+            {"name": "AUTOSTAT/AEB 俄罗斯汽车统计局", "url": "https://www.autostat.ru/"},
+            {"name": "ANAC 智利汽车协会", "url": "https://www.anac.cl/"},
+            {"name": "KazAuto 哈萨克斯坦汽车工业协会", "url": "https://kazautoindustry.kz/"},
+            {"name": "PAMA 巴基斯坦汽车制造商协会月报", "url": "https://www.pama.org.pk/"},
+            {"name": "ARAPER 秘鲁汽车协会", "url": "https://araper.org.pe/"},
+            {"name": "乘联分会/中汽协 2025年度出口数据", "url": "https://www.cpcaauto.com/"},
+            {"name": "MarkLines 全球汽车产业平台", "url": "https://www.marklines.com/"},
+            {"name": "芝能汽车/崔东树 行业分析", "url": "https://www.zhinengauto.com/"},
+            {"name": "FTI 泰国工业联合会月报", "url": "https://www.fti.or.th/"},
+            {"name": "Gaikindo 印尼汽车工业协会数据", "url": "https://www.gaikindo.or.id/"},
+            {"name": "ODD/OSD 土耳其汽车经销商与制造商协会", "url": "https://www.oddd.org.tr/"},
+            {"name": "NAAMSA 南非汽车制造商协会", "url": "https://www.naamsa.co.za/"},
+            {"name": "MAA 马来西亚汽车协会", "url": "https://www.maa.org.my/"},
+            {"name": "沙特工业发展基金", "url": "https://www.sidf.gov.sa/"},
+            {"name": "CEIC 全球经济数据库", "url": "https://www.ceicdata.com/"},
+        ],
     }
 
 
