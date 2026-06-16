@@ -22,6 +22,7 @@
 - CEIC 全球经济数据库
 
 更新时间：2026-06-16
+版本：v2.1-force-redeploy
 """
 
 import json
