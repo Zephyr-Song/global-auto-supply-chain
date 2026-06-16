@@ -709,10 +709,10 @@ def run():
             st.plotly_chart(prod_fig, use_container_width=True)
             if getattr(prod_fig, '_no_production', None):
                 st.error('⚠ 无本土制造: ' + ', '.join(prod_fig._no_production))
-            st.caption(source_caption(["OICA", "ANFAVEA", "AMIA", "AUTOSTAT"]))
+            st.markdown(f'📚 {source_caption(["OICA", "ANFAVEA", "AMIA", "AUTOSTAT"])}')
         with col2:
             st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
-            st.caption(source_caption(["CPCA", "CAAM"]))
+            st.markdown(f'📚 {source_caption(["CPCA", "CAAM"])}')
 
         # 销量趋势图
         log_sales = st.checkbox("对数坐标（对比小国销量）", value=True, key="log_sales")
@@ -721,16 +721,16 @@ def run():
             sales_fig.update_yaxes(type="log", row=1, col=1)
             sales_fig.update_yaxes(type="log", row=2, col=1)
         st.plotly_chart(sales_fig, use_container_width=True)
-        st.caption(source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "PAMA", "ARAPER", "FTI", "Gaikindo"]))
+        st.markdown(f'📚 {source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "PAMA", "ARAPER", "FTI", "Gaikindo"])}')
 
     with tab2:
         col1, col2 = st.columns([3, 2])
         with col1:
             st.plotly_chart(fig_brand_share(selected_country_codes), use_container_width=True)
-            st.caption(source_caption(["MarkLines", "ANFAVEA", "AMIA", "AUTOSTAT"]))
+            st.markdown(f'📚 {source_caption(["MarkLines", "ANFAVEA", "AMIA", "AUTOSTAT"])}')
         with col2:
             st.plotly_chart(fig_ev_penetration(selected_country_codes), use_container_width=True)
-            st.caption(source_caption(["MarkLines", "CEIC"]))
+            st.markdown(f'📚 {source_caption(["MarkLines", "CEIC"])}')
 
     with tab3:
         col1, col2 = st.columns(2)
@@ -738,7 +738,7 @@ def run():
             st.plotly_chart(fig_supply_chain_radar(selected_country_codes), use_container_width=True)
         with col2:
             st.plotly_chart(fig_risk_heatmap(selected_country_codes), use_container_width=True)
-        st.caption(source_caption(["CEIC", "MarkLines"]))
+        st.markdown(f'📚 {source_caption(["CEIC", "MarkLines"])}')
 
         # 风险详情表
         st.subheader("📝 各国供应链关键风险")
@@ -760,33 +760,52 @@ def run():
 
     with tab5:
         # 中国品牌市场份额增长趋势
-        st.plotly_chart(fig_china_brand_trend(), use_container_width=True)
-        st.caption(source_caption(["MarkLines", "CPCA", "Zhinen"]))
+        if CHINA_BRAND_TREND:
+            st.plotly_chart(fig_china_brand_trend(), use_container_width=True)
+            st.markdown(f'📚 {source_caption(["MarkLines", "CPCA", "Zhinen"])}')
+        else:
+            st.warning("暂无中国品牌趋势数据")
 
         # 电动车渗透率增长趋势
-        st.plotly_chart(fig_ev_trend(), use_container_width=True)
-        st.caption(source_caption(["MarkLines", "CEIC"]))
+        if EV_TREND:
+            st.plotly_chart(fig_ev_trend(), use_container_width=True)
+            st.markdown(f'📚 {source_caption(["MarkLines", "CEIC"])}')
+        else:
+            st.warning("暂无EV渗透率趋势数据")
 
     with tab6:
         # 各国贸易壁垒对比
-        st.plotly_chart(fig_trade_barriers(), use_container_width=True)
-        st.caption(source_caption(["CEIC", "MarkLines"]))
-        # 标注各国 notes
         if TRADE_BARRIERS:
-            for c, info in TRADE_BARRIERS.items():
-                cn_name = COUNTRY_CN.get(c, c)
-                notes = info.get("notes", "")
-                if notes:
-                    st.caption(f"**{cn_name}**: {notes}")
+            st.plotly_chart(fig_trade_barriers(), use_container_width=True)
+            st.markdown(f'📚 {source_caption(["CEIC", "MarkLines"])}')
+            # 标注各国 notes — 用 expandable section
+            with st.expander("📋 各国贸易政策详情"):
+                for c, info in TRADE_BARRIERS.items():
+                    cn_name = COUNTRY_CN.get(c, c)
+                    notes = info.get("notes", "")
+                    ev_status = "✅ 有" if info.get("ev_incentive") else "❌ 无"
+                    tariff = info.get("import_tariff", 0) * 100
+                    local_req = info.get("localization_requirement", 0) * 100
+                    st.markdown(f"**{cn_name}** — 进口关税 {tariff:.0f}% | 本地化率要求 {local_req:.0f}% | EV激励: {ev_status}")
+                    if notes:
+                        st.caption(f"  ↳ {notes}")
+        else:
+            st.warning("暂无贸易壁垒数据")
 
         # 各国汽车进口依赖度
-        st.plotly_chart(fig_import_dependency(), use_container_width=True)
-        st.caption(source_caption(["OICA", "MarkLines"]))
+        if IMPORT_DEP:
+            st.plotly_chart(fig_import_dependency(), use_container_width=True)
+            st.markdown(f'📚 {source_caption(["OICA", "MarkLines"])}')
+        else:
+            st.warning("暂无进口依赖度数据")
 
     with tab7:
         # 二手车/新车市场比率
-        st.plotly_chart(fig_used_new_ratio(), use_container_width=True)
-        st.caption(source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "FTI", "Gaikindo", "NAAMSA", "MAA"]))
+        if USED_NEW_RATIO:
+            st.plotly_chart(fig_used_new_ratio(), use_container_width=True)
+            st.markdown(f'📚 {source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "FTI", "Gaikindo", "NAAMSA", "MAA"])}')
+        else:
+            st.warning("暂无二手车/新车比率数据")
 
 
 if __name__ == "__main__":
