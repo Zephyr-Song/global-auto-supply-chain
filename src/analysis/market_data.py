@@ -566,6 +566,7 @@ def get_all_data():
         "brand_market_share": BRAND_MARKET_SHARE,
         "supply_chain_risk": SUPPLY_CHAIN_RISK,
         "ev_penetration": EV_PENETRATION,
+        "source_urls": SOURCE_URLS,
         "last_updated": datetime.now().isoformat(),
         "data_sources": [
             {"name": "OICA 2025全球产销报告 (2026年4月23日发布)", "url": "https://www.oica.net/category/production-statistics/"},

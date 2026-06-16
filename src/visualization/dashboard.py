@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from analysis.market_data import get_all_data, SOURCE_URLS
+from analysis.market_data import get_all_data
 
 # 初始化数据
 data = get_all_data()
@@ -23,6 +23,7 @@ BRANDS = data["brand_market_share"]
 RISK = data["supply_chain_risk"]
 EV = data["ev_penetration"]
 EXPORT = data["china_export"]
+SOURCE_URLS = data.get("source_urls", {})
 
 # 国家顺序（统一）— 从数据动态生成，确保只在所有数据集都存在的国家才展示
 _ALL_COUNTRIES = [
