@@ -30,6 +30,10 @@ IMPORT_DEP = data.get("import_dependency", {})
 USED_NEW_RATIO = data.get("used_new_car_ratio", {})
 SOURCE_URLS = data.get("source_urls", {})
 
+# DEBUG: 显示数据加载状态（排查 Cloud 部署问题，稳定后删除）
+_DATA_KEYS = list(data.keys())
+_NEW_DATA_STATUS = {k: ("✅" if data.get(k) else "❌") for k in ["china_brand_share_trend", "ev_penetration_trend", "trade_barriers", "import_dependency", "used_new_car_ratio", "source_urls"]}
+
 # 国家顺序（统一）— 从数据动态生成，确保只在所有数据集都存在的国家才展示
 _ALL_COUNTRIES = [
     "Brazil", "Mexico", "Russia", "Chile", "Kazakhstan", "Pakistan", "Peru",
@@ -654,6 +658,11 @@ def run():
         f'</p>',
         unsafe_allow_html=True
     )
+
+    # DEBUG: 数据加载诊断（稳定后删除）
+    with st.expander("🔧 数据加载诊断", expanded=False):
+        st.write(f"data keys ({len(_DATA_KEYS)}): {_DATA_KEYS}")
+        st.json(_NEW_DATA_STATUS)
 
     # ======== 关键指标卡片 ========
     col1, col2, col3, col4, col5 = st.columns(5)
