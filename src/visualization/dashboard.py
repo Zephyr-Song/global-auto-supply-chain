@@ -14,9 +14,26 @@ from plotly.subplots import make_subplots
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from analysis.market_data import get_all_data
+import importlib
 
 # 初始化数据
 data = get_all_data()
+
+# 安全检查：确保新数据字段存在（排查 Streamlit Cloud 缓存问题）
+_EXPECTED_KEYS = ["china_brand_share_trend", "ev_penetration_trend", "trade_barriers", "import_dependency", "used_new_car_ratio"]
+_MISSING_KEYS = [k for k in _EXPECTED_KEYS if k not in data or not data[k]]
+if _MISSING_KEYS:
+    # 尝试重新加载模块
+    import analysis.market_data as _md_mod
+    importlib.reload(_md_mod)
+    data = _md_mod.get_all_data()
+    _STILL_MISSING = [k for k in _EXPECTED_KEYS if k not in data or not data[k]]
+    if _STILL_MISSING:
+        _RELOAD_STATUS = f"reload failed, still missing: {_STILL_MISSING}"
+    else:
+        _RELOAD_STATUS = "reload OK, all keys present"
+else:
+    _RELOAD_STATUS = "all keys present on first load"
 PROD = data["production"]
 SALES = data["sales"]
 BRANDS = data["brand_market_share"]
@@ -674,6 +691,7 @@ def run():
         st.json(_NEW_DATA_STATUS)
         st.write(f"market_data.py MD5: {_MD_HASH}")
         st.write(f"Python: {sys.version}")
+        st.write(f"Reload status: {_RELOAD_STATUS}")
 
     # ======== 关键指标卡片 ========
     col1, col2, col3, col4, col5 = st.columns(5)
