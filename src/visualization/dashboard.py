@@ -34,6 +34,15 @@ SOURCE_URLS = data.get("source_urls", {})
 _DATA_KEYS = list(data.keys())
 _NEW_DATA_STATUS = {k: ("✅" if data.get(k) else "❌") for k in ["china_brand_share_trend", "ev_penetration_trend", "trade_barriers", "import_dependency", "used_new_car_ratio", "source_urls"]}
 
+# 计算本地 market_data.py 的 hash 来确认 Cloud 用的是否是最新版
+try:
+    import hashlib
+    _md_path = os.path.join(os.path.dirname(__file__), "..", "analysis", "market_data.py")
+    with open(_md_path, "rb") as _f:
+        _MD_HASH = hashlib.md5(_f.read()).hexdigest()[:8]
+except Exception as _e:
+    _MD_HASH = f"err: {_e}"
+
 # 国家顺序（统一）— 从数据动态生成，确保只在所有数据集都存在的国家才展示
 _ALL_COUNTRIES = [
     "Brazil", "Mexico", "Russia", "Chile", "Kazakhstan", "Pakistan", "Peru",
@@ -663,6 +672,8 @@ def run():
     with st.expander("🔧 数据加载诊断", expanded=False):
         st.write(f"data keys ({len(_DATA_KEYS)}): {_DATA_KEYS}")
         st.json(_NEW_DATA_STATUS)
+        st.write(f"market_data.py MD5: {_MD_HASH}")
+        st.write(f"Python: {sys.version}")
 
     # ======== 关键指标卡片 ========
     col1, col2, col3, col4, col5 = st.columns(5)
