@@ -23,6 +23,11 @@ BRANDS = data["brand_market_share"]
 RISK = data["supply_chain_risk"]
 EV = data["ev_penetration"]
 EXPORT = data["china_export"]
+CHINA_BRAND_TREND = data.get("china_brand_share_trend", {})
+EV_TREND = data.get("ev_penetration_trend", {})
+TRADE_BARRIERS = data.get("trade_barriers", {})
+IMPORT_DEP = data.get("import_dependency", {})
+USED_NEW_RATIO = data.get("used_new_car_ratio", {})
 SOURCE_URLS = data.get("source_urls", {})
 
 # 国家顺序（统一）— 从数据动态生成，确保只在所有数据集都存在的国家才展示
@@ -208,6 +213,181 @@ def fig_ev_penetration(active=None):
         yaxis=dict(title="渗透率 (%)", ticksuffix="%"),
         template="plotly_white",
         height=400,
+    )
+    return fig
+
+
+def fig_china_brand_trend():
+    """中国品牌市场份额增长趋势"""
+    years = [2020, 2021, 2022, 2023, 2024, 2025]
+    fig = go.Figure()
+    for c, shares in CHINA_BRAND_TREND.items():
+        cn_name = COUNTRY_CN.get(c, c)
+        fig.add_trace(go.Scatter(
+            x=years, y=shares,
+            mode="lines+markers",
+            name=f"{cn_name} ({c})",
+            line=dict(color=COUNTRY_COLORS.get(c, "#95a5a6"), width=2.5),
+            marker=dict(size=6),
+            hovertemplate="%{y:.1f}%",
+        ))
+    fig.update_layout(
+        title=dict(text="📈 中国品牌市场份额增长趋势 (2020-2025)", font=dict(size=18)),
+        xaxis=dict(title="年份", dtick=1),
+        yaxis=dict(title="市场份额 (%)", ticksuffix="%"),
+        hovermode="x unified",
+        legend=dict(orientation="h", y=-0.20),
+        template="plotly_white",
+        height=500,
+    )
+    return fig
+
+
+def fig_ev_trend():
+    """电动车渗透率增长趋势"""
+    years = [2020, 2021, 2022, 2023, 2024, 2025]
+    fig = go.Figure()
+    for c, rates in EV_TREND.items():
+        cn_name = COUNTRY_CN.get(c, c)
+        fig.add_trace(go.Scatter(
+            x=years, y=[r * 100 for r in rates],
+            mode="lines+markers",
+            name=f"{cn_name} ({c})",
+            line=dict(color=COUNTRY_COLORS.get(c, "#95a5a6"), width=2.5),
+            marker=dict(size=6),
+            hovertemplate="%{y:.1f}%",
+        ))
+    fig.update_layout(
+        title=dict(text="🔋 电动车渗透率增长趋势 (2020-2025)", font=dict(size=18)),
+        xaxis=dict(title="年份", dtick=1),
+        yaxis=dict(title="渗透率 (%)", ticksuffix="%"),
+        hovermode="x unified",
+        legend=dict(orientation="h", y=-0.20),
+        template="plotly_white",
+        height=500,
+    )
+    return fig
+
+
+def fig_trade_barriers():
+    """各国贸易壁垒对比"""
+    if not TRADE_BARRIERS:
+        return go.Figure()
+
+    countries = list(TRADE_BARRIERS.keys())
+    cn_names = [COUNTRY_CN.get(c, c) for c in countries]
+    tariffs = [TRADE_BARRIERS[c]["import_tariff"] * 100 for c in countries]
+    localization = [TRADE_BARRIERS[c]["localization_requirement"] * 100 for c in countries]
+    ev_incentive_labels = ["✅" if TRADE_BARRIERS[c].get("ev_incentive") else "❌" for c in countries]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        y=cn_names,
+        x=tariffs,
+        orientation="h",
+        name="进口关税 (%)",
+        marker_color="#e74c3c",
+        text=[f"{v:.0f}%" for v in tariffs],
+        textposition="outside",
+        hovertemplate="%{y}: 进口关税 %{x:.0f}%<extra></extra>",
+    ))
+    fig.add_trace(go.Bar(
+        y=cn_names,
+        x=localization,
+        orientation="h",
+        name="本地化率要求 (%)",
+        marker_color="#3498db",
+        text=[f"{v:.0f}%" for v in localization],
+        textposition="outside",
+        hovertemplate="%{y}: 本地化率要求 %{x:.0f}%<extra></extra>",
+    ))
+    # ev_incentive 标记用 annotation 方式标注在 y 轴标签旁
+    fig.update_layout(
+        title=dict(text="🛡️ 各国贸易壁垒对比", font=dict(size=18)),
+        xaxis=dict(title="百分比 (%)", ticksuffix="%"),
+        yaxis=dict(title="国家"),
+        barmode="group",
+        template="plotly_white",
+        height=500,
+        legend=dict(orientation="h", y=-0.15),
+    )
+    # 在图表上标注 ev_incentive
+    for i, label in enumerate(ev_incentive_labels):
+        fig.add_annotation(
+            x=max(tariffs[i], localization[i]) + 2,
+            y=cn_names[i],
+            text=f"EV激励: {label}",
+            showarrow=False,
+            font=dict(size=10),
+        )
+    return fig
+
+
+def fig_import_dependency():
+    """各国汽车进口依赖度"""
+    if not IMPORT_DEP:
+        return go.Figure()
+
+    sorted_items = sorted(IMPORT_DEP.items(), key=lambda x: x[1], reverse=True)
+    countries = [k for k, _ in sorted_items]
+    cn_names = [COUNTRY_CN.get(c, c) for c in countries]
+    values = [v * 100 for _, v in sorted_items]
+
+    colors = []
+    for v in sorted_items:
+        val = v[1]
+        if val <= 0.3:
+            colors.append("#27ae60")  # 绿色 - 低依赖
+        elif val <= 0.6:
+            colors.append("#f39c12")  # 黄色 - 中依赖
+        else:
+            colors.append("#e74c3c")  # 红色 - 高依赖
+
+    fig = go.Figure(go.Bar(
+        y=cn_names,
+        x=values,
+        orientation="h",
+        marker_color=colors,
+        text=[f"{v:.1f}%" for v in values],
+        textposition="outside",
+        hovertemplate="%{y}: 进口依赖度 %{x:.1f}%<extra></extra>",
+    ))
+    fig.update_layout(
+        title=dict(text="🌐 各国汽车进口依赖度", font=dict(size=18)),
+        xaxis=dict(title="进口依赖度 (%)", ticksuffix="%"),
+        yaxis=dict(title="国家"),
+        template="plotly_white",
+        height=450,
+    )
+    return fig
+
+
+def fig_used_new_ratio():
+    """二手车/新车市场比率"""
+    if not USED_NEW_RATIO:
+        return go.Figure()
+
+    sorted_items = sorted(USED_NEW_RATIO.items(), key=lambda x: x[1], reverse=True)
+    countries = [k for k, _ in sorted_items]
+    cn_names = [COUNTRY_CN.get(c, c) for c in countries]
+    values = [v for _, v in sorted_items]
+    colors = [COUNTRY_COLORS.get(c, "#95a5a6") for c in countries]
+
+    fig = go.Figure(go.Bar(
+        y=cn_names,
+        x=values,
+        orientation="h",
+        marker_color=colors,
+        text=[f"{v:.1f}x" for v in values],
+        textposition="outside",
+        hovertemplate="%{y}: %{x:.1f}x<extra></extra>",
+    ))
+    fig.update_layout(
+        title=dict(text="🔄 二手车/新车市场比率 (2025)", font=dict(size=18)),
+        xaxis=dict(title="比率 (倍)"),
+        yaxis=dict(title="国家"),
+        template="plotly_white",
+        height=450,
     )
     return fig
 
@@ -516,7 +696,7 @@ def run():
     st.divider()
 
     # ======== 主内容区 ========
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 产量与销量", "🏷️ 品牌与EV", "⚠️ 供应链风险", "📋 数据明细"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📊 产量与销量", "🏷️ 品牌与EV", "⚠️ 供应链风险", "📋 数据明细", "🇨🇳 中国品牌出海", "📉 贸易壁垒与进口", "📊 市场深度"])
 
     with tab1:
         # 产量趋势图
@@ -577,6 +757,36 @@ def run():
             st.subheader("🔧 原始数据 (JSON)")
             with st.expander("点击展开原始数据"):
                 st.json(data)
+
+    with tab5:
+        # 中国品牌市场份额增长趋势
+        st.plotly_chart(fig_china_brand_trend(), use_container_width=True)
+        st.caption(source_caption(["MarkLines", "CPCA", "Zhinen"]))
+
+        # 电动车渗透率增长趋势
+        st.plotly_chart(fig_ev_trend(), use_container_width=True)
+        st.caption(source_caption(["MarkLines", "CEIC"]))
+
+    with tab6:
+        # 各国贸易壁垒对比
+        st.plotly_chart(fig_trade_barriers(), use_container_width=True)
+        st.caption(source_caption(["CEIC", "MarkLines"]))
+        # 标注各国 notes
+        if TRADE_BARRIERS:
+            for c, info in TRADE_BARRIERS.items():
+                cn_name = COUNTRY_CN.get(c, c)
+                notes = info.get("notes", "")
+                if notes:
+                    st.caption(f"**{cn_name}**: {notes}")
+
+        # 各国汽车进口依赖度
+        st.plotly_chart(fig_import_dependency(), use_container_width=True)
+        st.caption(source_caption(["OICA", "MarkLines"]))
+
+    with tab7:
+        # 二手车/新车市场比率
+        st.plotly_chart(fig_used_new_ratio(), use_container_width=True)
+        st.caption(source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "FTI", "Gaikindo", "NAAMSA", "MAA"]))
 
 
 if __name__ == "__main__":

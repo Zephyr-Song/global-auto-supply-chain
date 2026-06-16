@@ -557,6 +557,165 @@ EV_PENETRATION = {
 }
 
 
+# ============================================================
+# 新增数据维度 — 二手车/新车比率、进口依赖度、关税壁垒、
+# 中国品牌份额趋势、EV渗透率趋势
+# ============================================================
+
+# 年份轴（与现有数据对齐）
+YEARS = [2020, 2021, 2022, 2023, 2024, 2025]
+
+# 二手车/新车销量比率（2025年数据，基于 SALES_DATA 计算）
+USED_NEW_CAR_RATIO = {
+    "Brazil": 4.56,       # 11300000/2480000
+    "Mexico": 4.50,       # 6700000/1490000
+    "Russia": 4.21,       # 5600000/1330000
+    "Chile": 5.41,        # 2000000/370000
+    "Kazakhstan": 3.95,   # 830000/210000
+    "Pakistan": 5.78,     # 780000/135000
+    "Peru": 5.74,         # 890000/155000
+    "Thailand": 4.19,     # 2600000/620000
+    "Indonesia": 4.40,    # 3300000/750000
+    "Turkey": 4.23,       # 5800000/1370000
+    "SaudiArabia": 2.23,  # 1850000/830000
+    "Malaysia": 3.21,     # 2500000/780000
+    "SouthAfrica": 4.53,  # 2400000/530000
+}
+
+# 进口依赖度（0-1，越高越依赖进口）
+IMPORT_DEPENDENCY = {
+    "Brazil": 0.15,       # 本土产量>销量，但高端车型仍需进口
+    "Mexico": 0.25,       # 本土产量大但部分出口，国内仍需进口补充
+    "Russia": 0.60,       # 制裁后本土产能大幅下降，依赖中国进口
+    "Chile": 1.00,        # 无本土制造，100%进口
+    "Kazakhstan": 0.55,   # CKD/SKD为主，核心零部件依赖进口
+    "Pakistan": 0.45,     # CKD组装为主，日系供应链依赖
+    "Peru": 1.00,         # 无本土制造，100%进口
+    "Thailand": 0.20,     # 本土产量>销量，是出口大国
+    "Indonesia": 0.25,    # 本土产量>销量，出口型
+    "Turkey": 0.30,       # 本土产量>销量，但进口补充高端市场
+    "SaudiArabia": 0.95,  # 仅少量CKD组装，绝大部分进口
+    "Malaysia": 0.20,     # 本土产量接近销量，Perodua/Proton主导
+    "SouthAfrica": 0.35,  # 本土有产能不能满足全部需求
+}
+
+# 关税/贸易壁垒数据
+TRADE_BARRIERS = {
+    "Brazil": {
+        "import_tariff": 0.35,
+        "ev_incentive": True,
+        "localization_requirement": 0.50,
+        "notes": "进口关税35%，EV有税收减免，本地化率要求50%+",
+    },
+    "Mexico": {
+        "import_tariff": 0.20,
+        "ev_incentive": True,
+        "localization_requirement": 0.62,
+        "notes": "USMCA原产地规则62.5%，EV免税政策",
+    },
+    "Russia": {
+        "import_tariff": 0.15,
+        "ev_incentive": False,
+        "localization_requirement": 0.00,
+        "notes": "制裁下特殊进口通道，平行进口为主，EV无优惠",
+    },
+    "Chile": {
+        "import_tariff": 0.06,
+        "ev_incentive": True,
+        "localization_requirement": 0.00,
+        "notes": "自贸协定多，关税低，EV免购置税",
+    },
+    "Kazakhstan": {
+        "import_tariff": 0.10,
+        "ev_incentive": False,
+        "localization_requirement": 0.30,
+        "notes": "EAEU关税同盟，CKD组装有优惠，EV无专项政策",
+    },
+    "Pakistan": {
+        "import_tariff": 0.45,
+        "ev_incentive": True,
+        "localization_requirement": 0.30,
+        "notes": "CBU关税高达45-75%，EV有减税政策，本地化率<30%",
+    },
+    "Peru": {
+        "import_tariff": 0.06,
+        "ev_incentive": True,
+        "localization_requirement": 0.00,
+        "notes": "自贸协定，关税低，EV有税收优惠",
+    },
+    "Thailand": {
+        "import_tariff": 0.40,
+        "ev_incentive": True,
+        "localization_requirement": 0.40,
+        "notes": "CBU关税40%，但EV进口3年免税(2024-2025)，本地化率要求提升",
+    },
+    "Indonesia": {
+        "import_tariff": 0.40,
+        "ev_incentive": True,
+        "localization_requirement": 0.40,
+        "notes": "CBU关税40%，EV进口免税+TKDN政策，镍矿出口禁令",
+    },
+    "Turkey": {
+        "import_tariff": 0.40,
+        "ev_incentive": False,
+        "localization_requirement": 0.00,
+        "notes": "2024年起对中国车加征额外关税(40%)，实际中国车关税60%+",
+    },
+    "SaudiArabia": {
+        "import_tariff": 0.05,
+        "ev_incentive": True,
+        "localization_requirement": 0.10,
+        "notes": "关税极低(5%)，EV有补贴，Vision 2030推动本地化",
+    },
+    "Malaysia": {
+        "import_tariff": 0.30,
+        "ev_incentive": True,
+        "localization_requirement": 0.50,
+        "notes": "CBU关税30-60%，AP系统限制进口配额，EV免税至2025",
+    },
+    "SouthAfrica": {
+        "import_tariff": 0.25,
+        "ev_incentive": True,
+        "localization_requirement": 0.55,
+        "notes": "进口关税18-25%，APDP政策推动本地化，EV有税收减免",
+    },
+}
+
+# 中国品牌份额趋势（2020-2025年，百分比）
+CHINA_BRAND_SHARE_TREND = {
+    "Brazil":       [3.1, 3.5, 4.2, 5.8, 8.5, 11.1],
+    "Mexico":       [1.2, 1.8, 2.5, 3.8, 5.5, 7.8],
+    "Russia":       [8.5, 10.2, 18.5, 42.5, 55.3, 58.7],
+    "Chile":        [8.2, 10.5, 14.8, 22.5, 29.5, 34.4],
+    "Kazakhstan":   [5.5, 8.2, 12.8, 22.5, 35.2, 42.0],
+    "Pakistan":     [2.0, 3.5, 4.8, 6.2, 7.5, 9.5],
+    "Peru":         [3.5, 4.2, 5.8, 7.5, 9.2, 11.5],
+    "Thailand":     [4.5, 5.2, 8.5, 12.5, 17.8, 20.5],
+    "Indonesia":    [2.8, 3.5, 5.2, 7.5, 10.5, 13.0],
+    "Turkey":       [1.5, 2.2, 3.5, 5.8, 8.2, 8.0],   # 2025年加税后份额下降
+    "SaudiArabia":  [5.2, 6.8, 8.5, 10.5, 13.2, 15.0],
+    "Malaysia":     [1.8, 2.5, 3.2, 4.5, 5.8, 7.2],
+    "SouthAfrica":  [1.2, 2.5, 4.8, 8.5, 12.5, 16.0],
+}
+
+# EV渗透率趋势（2020-2025年，小数0-1）
+EV_PENETRATION_TREND = {
+    "Brazil":       [0.012, 0.018, 0.025, 0.038, 0.048, 0.068],
+    "Mexico":       [0.005, 0.008, 0.015, 0.025, 0.038, 0.055],
+    "Russia":       [0.002, 0.003, 0.005, 0.008, 0.012, 0.018],
+    "Chile":        [0.015, 0.022, 0.035, 0.048, 0.058, 0.072],
+    "Kazakhstan":   [0.002, 0.005, 0.008, 0.012, 0.018, 0.025],
+    "Pakistan":     [0.001, 0.001, 0.002, 0.003, 0.004, 0.005],
+    "Peru":         [0.005, 0.008, 0.012, 0.018, 0.025, 0.032],
+    "Thailand":     [0.025, 0.035, 0.065, 0.125, 0.168, 0.222],
+    "Indonesia":    [0.005, 0.008, 0.015, 0.025, 0.035, 0.045],
+    "Turkey":       [0.008, 0.015, 0.025, 0.038, 0.052, 0.068],
+    "SaudiArabia":  [0.005, 0.008, 0.012, 0.018, 0.025, 0.035],
+    "Malaysia":     [0.008, 0.012, 0.018, 0.028, 0.042, 0.058],
+    "SouthAfrica":  [0.003, 0.005, 0.008, 0.012, 0.018, 0.022],
+}
+
+
 def get_all_data():
     """获取全部数据"""
     return {
@@ -566,6 +725,12 @@ def get_all_data():
         "brand_market_share": BRAND_MARKET_SHARE,
         "supply_chain_risk": SUPPLY_CHAIN_RISK,
         "ev_penetration": EV_PENETRATION,
+        "used_new_car_ratio": USED_NEW_CAR_RATIO,
+        "import_dependency": IMPORT_DEPENDENCY,
+        "trade_barriers": TRADE_BARRIERS,
+        "china_brand_share_trend": CHINA_BRAND_SHARE_TREND,
+        "ev_penetration_trend": EV_PENETRATION_TREND,
+        "years": YEARS,
         "source_urls": SOURCE_URLS,
         "last_updated": datetime.now().isoformat(),
         "data_sources": [
