@@ -45,19 +45,19 @@ COUNTRY_COLORS = {c: _BASE_COLORS[i % len(_BASE_COLORS)] for i, c in enumerate(C
 
 
 def source_caption(sources):
-    """生成数据来源标注的HTML"""
+    """生成数据来源标注（Streamlit markdown格式，无需unsafe_allow_html）"""
     links = []
     for s in sources:
         if isinstance(s, dict) and "url" in s:
-            links.append('<a href="{}" target="_blank">{}</a>'.format(s["url"], s["name"]))
+            links.append('[{}]({})'.format(s["name"], s["url"]))
         elif isinstance(s, dict):
             links.append(s.get("name", str(s)))
         elif isinstance(s, str) and s in SOURCE_URLS:
             info = SOURCE_URLS[s]
-            links.append('<a href="{}" target="_blank">{}</a>'.format(info["url"], info["name"]))
+            links.append('[{}]({})'.format(info["name"], info["url"]))
         else:
             links.append(str(s))
-    return '<p style="font-size:11px;color:#888;">数据来源：' + ' · '.join(links) + '</p>'
+    return '数据来源：' + ' · '.join(links)
 
 
 # ============================================================
@@ -528,11 +528,11 @@ def run():
                 prod_fig.update_yaxes(type="log")
             st.plotly_chart(prod_fig, use_container_width=True)
             if getattr(prod_fig, '_no_production', None):
-                st.markdown(f'<p style="font-size:13px;color:#e74c3c;">⚠ 无本土制造: {", ".join(prod_fig._no_production)}</p>', unsafe_allow_html=True)
-            st.markdown(source_caption(["OICA", "ANFAVEA", "AMIA", "AUTOSTAT"]), unsafe_allow_html=True)
+                st.error('⚠ 无本土制造: ' + ', '.join(prod_fig._no_production))
+            st.caption(source_caption(["OICA", "ANFAVEA", "AMIA", "AUTOSTAT"]))
         with col2:
             st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
-            st.markdown(source_caption(["CPCA", "CAAM"]), unsafe_allow_html=True)
+            st.caption(source_caption(["CPCA", "CAAM"]))
 
         # 销量趋势图
         log_sales = st.checkbox("对数坐标（对比小国销量）", value=True, key="log_sales")
@@ -541,16 +541,16 @@ def run():
             sales_fig.update_yaxes(type="log", row=1, col=1)
             sales_fig.update_yaxes(type="log", row=2, col=1)
         st.plotly_chart(sales_fig, use_container_width=True)
-        st.markdown(source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "PAMA", "ARAPER", "FTI", "Gaikindo"]), unsafe_allow_html=True)
+        st.caption(source_caption(["ANFAVEA", "AMIA", "AUTOSTAT", "ANAC", "PAMA", "ARAPER", "FTI", "Gaikindo"]))
 
     with tab2:
         col1, col2 = st.columns([3, 2])
         with col1:
             st.plotly_chart(fig_brand_share(selected_country_codes), use_container_width=True)
-            st.markdown(source_caption(["MarkLines", "ANFAVEA", "AMIA", "AUTOSTAT"]), unsafe_allow_html=True)
+            st.caption(source_caption(["MarkLines", "ANFAVEA", "AMIA", "AUTOSTAT"]))
         with col2:
             st.plotly_chart(fig_ev_penetration(selected_country_codes), use_container_width=True)
-            st.markdown(source_caption(["MarkLines", "CEIC"]), unsafe_allow_html=True)
+            st.caption(source_caption(["MarkLines", "CEIC"]))
 
     with tab3:
         col1, col2 = st.columns(2)
@@ -558,7 +558,7 @@ def run():
             st.plotly_chart(fig_supply_chain_radar(selected_country_codes), use_container_width=True)
         with col2:
             st.plotly_chart(fig_risk_heatmap(selected_country_codes), use_container_width=True)
-        st.markdown(source_caption(["CEIC", "MarkLines"]), unsafe_allow_html=True)
+        st.caption(source_caption(["CEIC", "MarkLines"]))
 
         # 风险详情表
         st.subheader("📝 各国供应链关键风险")
