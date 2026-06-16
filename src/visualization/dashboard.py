@@ -85,15 +85,8 @@ def fig_production_trend(active=None):
             marker=dict(size=6),
             hovertemplate="%{y:,.0f} 辆",
         ))
-    # 零产量国家用文字标注
-    if no_production_countries:
-        fig.add_annotation(
-            xref="paper", yref="paper",
-            x=0.5, y=-0.12,
-            text=f"⚠ 无本土制造: {', '.join(no_production_countries)}",
-            showarrow=False,
-            font=dict(size=12, color="#e74c3c"),
-        )
+    # 零产量国家信息存到 fig._no_production 以便外部使用
+    fig._no_production = no_production_countries
     fig.update_layout(
         title=dict(text="📊 目标国汽车产量趋势 (2020-2025)", font=dict(size=18)),
         xaxis=dict(title="年份", dtick=1),
@@ -220,12 +213,9 @@ def fig_ev_penetration(active=None):
 
 
 def fig_china_export(active=None):
-    """中国出口到目标国 — 条形图"""
-    active = active or COUNTRIES
+    """中国出口到目标国 — 条形图（始终显示所有有数据的出口目标国，不受侧边栏筛选限制）"""
     meta_keys = {'total_china_export_2025', 'source'}
-    # 只显示选中的国家 + UAE（如果被选中）
-    active_set = set(active)
-    export_data = [(k, v) for k, v in EXPORT.items() if isinstance(v, (int, float)) and k not in meta_keys and k in active_set]
+    export_data = [(k, v) for k, v in EXPORT.items() if isinstance(v, (int, float)) and k not in meta_keys]
     export_data.sort(key=lambda x: x[1], reverse=True)
     cn_names = {c: COUNTRY_CN[c] for c in COUNTRIES}
     cn_names["UAE"] = "阿联酋"
@@ -537,6 +527,8 @@ def run():
             if log_prod:
                 prod_fig.update_yaxes(type="log")
             st.plotly_chart(prod_fig, use_container_width=True)
+            if getattr(prod_fig, '_no_production', None):
+                st.markdown(f'<p style="font-size:13px;color:#e74c3c;">⚠ 无本土制造: {", ".join(prod_fig._no_production)}</p>', unsafe_allow_html=True)
             st.markdown(source_caption(["OICA", "ANFAVEA", "AMIA", "AUTOSTAT"]), unsafe_allow_html=True)
         with col2:
             st.plotly_chart(fig_china_export(selected_country_codes), use_container_width=True)
