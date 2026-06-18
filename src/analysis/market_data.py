@@ -21,8 +21,9 @@
 - 沙特工业发展基金
 - CEIC 全球经济数据库
 
-更新时间：2026-06-16
-版本：v2.1-force-redeploy
+更新时间：2026-06-18
+版本：v3.0-scrapling-integrated
+数据标注：✅ Scrapling爬取真实数据 | ⚡ 估算数据 | 📋 协会报告数据
 """
 
 import json
@@ -37,6 +38,40 @@ from datetime import datetime
 # ============================================================
 # 数据来源 URL 索引
 # ============================================================
+# ============================================================
+# Scrapling 爬取真实数据来源标记
+# ============================================================
+CRAWLED_DATA_SOURCES = {
+    "MAA_Malaysia": {
+        "source": "MAA (马来西亚汽车协会) 官网统计页",
+        "url": "https://www.maa.org.my/statistics.html",
+        "crawl_date": "2026-06-18",
+        "method": "Scrapling Fetcher (HTML表格提取)",
+        "data_years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+        "data_type": "production + sales (passenger/commercial/total)",
+        "raw_file": "data/crawled/maa_malaysia_real_data.json",
+    },
+    "Gaikindo_Indonesia": {
+        "source": "Gaikindo (印尼汽车工业协会) 新闻稿",
+        "url": "https://www.gaikindo.or.id/10-mobil-terlaris-whole-sales-januari-mei-2026-toyota-masih-teratas-byd-naik-peringkat/",
+        "crawl_date": "2026-06-18",
+        "method": "Scrapling Fetcher (文章正文提取)",
+        "data_period": "Jan-May 2026",
+        "data_type": "brand wholesale sales Top10",
+        "raw_file": "data/crawled/gaikindo_indonesia_real_data.json",
+    },
+    "Gaikindo_Files": {
+        "source": "Gaikindo 文件服务器",
+        "url": "https://files.gaikindo.or.id/list-files.php?lang=id",
+        "crawl_date": "2026-06-18",
+        "method": "Scrapling Fetcher (文件列表提取)",
+        "data_years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        "data_type": "production/wholesale/export/import PDF文件",
+        "raw_file": "data/crawled/gaikindo_file_links.json",
+        "note": "PDF下载链接为JS动态生成，需StealthyFetcher+海外IP",
+    },
+}
+
 SOURCE_URLS = {
     "OICA": {"name": "OICA 全球汽车产销报告", "url": "https://www.oica.net/category/production-statistics/"},
     "ANFAVEA": {"name": "ANFAVEA 巴西汽车制造商协会", "url": "https://anfavea.com.br/"},
@@ -145,9 +180,11 @@ PRODUCTION_DATA = {
     "Malaysia": {
         "country_cn": "马来西亚",
         "years": [2020, 2021, 2022, 2023, 2024, 2025],
-        "production": [575000, 480000, 620000, 690000, 720000, 750000],
-        "source": "MAA(马来西亚汽车协会)+MIDA | 2025年产量约75万辆",
-        "data_quality": "estimated_from_reports"
+        "production": [529514, 508911, 720658, 799731, 820000, 850000],
+        "source": "✅ MAA官网Scrapling爬取(2020-2023) + MIDA估算(2024-2025)",
+        "data_quality": "crawled_verified",  # 2020-2023 真实数据，2024-2025 估算
+        "crawled_years": [2020, 2021, 2022, 2023],
+        "note": "2020-2023数据来自MAA官网statistics.html页面HTML表格直接提取"
     },
     "SouthAfrica": {
         "country_cn": "南非",
@@ -238,10 +275,11 @@ SALES_DATA = {
     },
     "Malaysia": {
         "years": [2020, 2021, 2022, 2023, 2024, 2025],
-        "new_car_sales": [530000, 508000, 720000, 690000, 700000, 780000],
+        "new_car_sales": [485186, 481651, 702275, 774600, 800000, 830000],
         "used_car_sales": [2100000, 2000000, 2400000, 2300000, 2350000, 2500000],
-        "source": "MAA | 2025年销量约78万辆(+12%)，超印尼成东南亚第一",
-        "data_quality": "verified_monthly"
+        "source": "✅ MAA官网Scrapling爬取(2020-2023) + 估算(2024-2025) | 2023年销量774,600辆创历史新高",
+        "data_quality": "crawled_verified",  # 2020-2023 真实数据，2024-2025 估算
+        "crawled_years": [2020, 2021, 2022, 2023],
     },
     "SouthAfrica": {
         "years": [2020, 2021, 2022, 2023, 2024, 2025],
@@ -323,10 +361,18 @@ BRAND_MARKET_SHARE = {
         "source": "FTI + 芝能汽车"
     },
     "Indonesia": {
-        "brands": ["Toyota", "Daihatsu", "Honda", "Mitsubishi", "Suzuki", "Hyundai", "Wuling", "Chery", "BYD", "Others"],
-        "shares": [28.5, 16.2, 10.8, 8.5, 7.2, 5.1, 3.8, 3.2, 2.8, 13.9],
-        "note": "2025年1-10月数据 | 日系仍主导 | 中国品牌份额13%(翻倍增长)",
-        "source": "Gaikindo + 芝能汽车"
+        "brands": ["Toyota", "Daihatsu", "Suzuki", "Mitsubishi Motors", "Honda", "BYD", "Jaecoo", "Mitsubishi Fuso", "Isuzu", "Others"],
+        "shares": [30.9, 16.6, 8.4, 7.9, 5.1, 5.0, 4.0, 3.7, 3.0, 15.4],
+        "note": "✅ Gaikindo官网Scrapling爬取 | 2026年1-5月wholesale数据 | BYD跃升至第6 | 中国品牌(Jaecoo+BYD+Chery等)份额约12%",
+        "source": "Gaikindo 2026年1-5月官网数据 (Scrapling爬取)",
+        "wholesale_jan_may_2026": 359015,
+        "wholesale_jan_may_2026_units": {
+            "Toyota": 111119, "Daihatsu": 59420, "Suzuki": 30262,
+            "Mitsubishi Motors": 28445, "Honda": 18271, "BYD": 17993,
+            "Jaecoo": 14284, "Mitsubishi Fuso": 13459, "Isuzu": 10820,
+            "Hino": 8341
+        },
+        "yoy_growth_pct": 14.0,
     },
     "Turkey": {
         "brands": ["Renault", "Peugeot", "Fiat", "Toyota", "Volkswagen", "Hyundai", "Ford", "Chery", "BYD", "Others"],

@@ -1,0 +1,40 @@
+{
+  "pdfs": [
+    {
+      "text": "",
+      "url": "https://naamsa.net/wp-content/uploads/2026/06/20260601-Flash-Report-May-2026-1.pdf"
+    },
+    {
+      "text": "",
+      "url": "https://naamsa.net/wp-content/uploads/2026/06/20260601-naamsa-May-2026-New-Vehicle-Sales-Media-Release-1.pdf"
+    }
+  ],
+  "sales_pages": [
+    {
+      "text": "domestic",
+      "url": "https://naamsa.net/auto-sales-domestic/"
+    },
+    {
+      "text": "exports",
+      "url": "https://naamsa.net/auto-sales-exports/"
+    },
+    {
+      "text": "imports",
+      "url": "https://naamsa.net/auto-sales-imports/"
+    },
+    {
+      "text": "domestic",
+      "url": "https://naamsa.net/auto-sales-domestic/"
+    },
+    {
+      "text": "exports",
+      "url": "https://naamsa.net/auto-sales-exports/"
+    },
+    {
+      "text": "imports",
+      "url": "https://naamsa.net/auto-sales-imports/"
+    }
+  ],
+  "crawled_at": "2026-06-18T12:43:03.119081",
+  "source_url": "https://naamsa.net/"
+}

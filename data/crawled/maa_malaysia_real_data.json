@@ -1,0 +1,148 @@
+{
+  "production": {
+    "2010": {
+      "passenger": 543594,
+      "commercial": 61562,
+      "total": 605156
+    },
+    "2011": {
+      "passenger": 535113,
+      "commercial": 65010,
+      "total": 600123
+    },
+    "2012": {
+      "passenger": 552158,
+      "commercial": 75575,
+      "total": 627733
+    },
+    "2013": {
+      "passenger": 576640,
+      "commercial": 79104,
+      "total": 655744
+    },
+    "2014": {
+      "passenger": 588348,
+      "commercial": 78139,
+      "total": 666487
+    },
+    "2015": {
+      "passenger": 591275,
+      "commercial": 75402,
+      "total": 666677
+    },
+    "2016": {
+      "passenger": 514594,
+      "commercial": 65491,
+      "total": 580085
+    },
+    "2017": {
+      "passenger": 514675,
+      "commercial": 61950,
+      "total": 576625
+    },
+    "2018": {
+      "passenger": 533202,
+      "commercial": 65512,
+      "total": 598714
+    },
+    "2019": {
+      "passenger": 550179,
+      "commercial": 54108,
+      "total": 604287
+    },
+    "2020": {
+      "passenger": 480971,
+      "commercial": 48543,
+      "total": 529514
+    },
+    "2021": {
+      "passenger": 452663,
+      "commercial": 56248,
+      "total": 508911
+    },
+    "2022": {
+      "passenger": 641773,
+      "commercial": 78885,
+      "total": 720658
+    },
+    "2023": {
+      "passenger": 719160,
+      "commercial": 80571,
+      "total": 799731
+    }
+  },
+  "sales": {
+    "2010": {
+      "passenger": 522568,
+      "commercial": 45147,
+      "total": 567715
+    },
+    "2011": {
+      "passenger": 488261,
+      "commercial": 45254,
+      "total": 533515
+    },
+    "2012": {
+      "passenger": 509621,
+      "commercial": 59999,
+      "total": 569620
+    },
+    "2013": {
+      "passenger": 543892,
+      "commercial": 57515,
+      "total": 601407
+    },
+    "2014": {
+      "passenger": 545122,
+      "commercial": 51296,
+      "total": 596418
+    },
+    "2015": {
+      "passenger": 563883,
+      "commercial": 50781,
+      "total": 614664
+    },
+    "2016": {
+      "passenger": 503691,
+      "commercial": 41562,
+      "total": 545253
+    },
+    "2017": {
+      "passenger": 459558,
+      "commercial": 40081,
+      "total": 499639
+    },
+    "2018": {
+      "passenger": 522392,
+      "commercial": 42579,
+      "total": 564971
+    },
+    "2019": {
+      "passenger": 534115,
+      "commercial": 37517,
+      "total": 571632
+    },
+    "2020": {
+      "passenger": 457755,
+      "commercial": 27431,
+      "total": 485186
+    },
+    "2021": {
+      "passenger": 446431,
+      "commercial": 35220,
+      "total": 481651
+    },
+    "2022": {
+      "passenger": 650190,
+      "commercial": 52085,
+      "total": 702275
+    },
+    "2023": {
+      "passenger": 724891,
+      "commercial": 49709,
+      "total": 774600
+    }
+  },
+  "crawled_at": "2026-06-18T12:42:57.886459",
+  "source_url": "https://www.maa.org.my/statistics.html"
+}

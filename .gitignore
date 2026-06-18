@@ -38,3 +38,6 @@ Thumbs.db
 venv/
 .venv/
 env/
+
+# 测试脚本（临时）
+test_*.py

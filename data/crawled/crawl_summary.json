@@ -1,0 +1,23 @@
+{
+  "crawled_at": "2026-06-18T12:42:53.976180",
+  "sites": {
+    "MAA_Malaysia": {
+      "status": "success",
+      "production_years": 14,
+      "sales_years": 14
+    },
+    "Gaikindo_Indonesia": {
+      "status": "success",
+      "brands": 10
+    },
+    "Gaikindo_Files": {
+      "status": "success",
+      "files": 21
+    },
+    "NAAMSA_South_Africa": {
+      "status": "success",
+      "pdfs": 2,
+      "sales_pages": 6
+    }
+  }
+}
