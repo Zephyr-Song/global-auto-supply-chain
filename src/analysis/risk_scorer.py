@@ -23,7 +23,7 @@ import numpy as np
 try:
     from ..config import settings
 except ImportError:
-    from src.config import settings
+    from config import settings
 
 log = logging.getLogger(__name__)
 

@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional
 try:
     from ..config import settings
 except ImportError:
-    from src.config import settings
+    from config import settings
 
 log = __import__("logging").getLogger(__name__)
 
