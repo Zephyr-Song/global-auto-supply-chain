@@ -17,7 +17,7 @@ from analysis.market_data import get_all_data
 from analysis.risk_scorer import CountryRiskScorer, CountryRiskMetrics
 from analysis.market_kpi import MarketKPIEngine
 from optimization.market_allocator import MarketAllocator, MarketCandidate
-from analysis.automotive_bom import AutomotiveBOMAnalyzer, EntryMode
+from analysis.automotive_bom import AutomotiveBOMAnalyzer, EntryMode, DEFAULT_COUNTRY_PROFILES
 import importlib
 
 # 初始化数据
