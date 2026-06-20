@@ -14,6 +14,10 @@ from plotly.subplots import make_subplots
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from analysis.market_data import get_all_data
+from analysis.risk_scorer import CountryRiskScorer, CountryRiskMetrics
+from analysis.market_kpi import MarketKPIEngine
+from optimization.market_allocator import MarketAllocator, MarketCandidate
+from analysis.automotive_bom import AutomotiveBOMAnalyzer, EntryMode
 import importlib
 
 # 初始化数据
@@ -734,7 +738,7 @@ def run():
     st.divider()
 
     # ======== 主内容区 ========
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📊 产量与销量", "🏷️ 品牌与EV", "⚠️ 供应链风险", "📋 数据明细", "🇨🇳 中国品牌出海", "📉 贸易壁垒与进口", "📊 市场深度"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["📊 产量与销量", "🏷️ 品牌与EV", "⚠️ 供应链风险", "🎯 优化决策", "📋 数据明细", "🇨🇳 中国品牌出海", "📉 贸易壁垒与进口", "📊 市场深度"])
 
     with tab1:
         # 产量趋势图
@@ -771,6 +775,31 @@ def run():
             st.markdown(f'📚 {source_caption(["MarkLines", "CEIC"])}')
 
     with tab3:
+        # ── 量化风险评分 ──
+        scorer = CountryRiskScorer()
+        risk_metrics_list = []
+        for c in selected_country_codes:
+            r = RISK[c]
+            b = TRADE_BARRIERS.get(c, {})
+            ev_val = EV.get(c, 0)
+            imp_dep = IMPORT_DEP.get(c, 0.5)
+            metrics = CountryRiskMetrics(
+                country_id=c,
+                country_cn=COUNTRY_CN.get(c, c),
+                geopolitical_risk=r.get("geopolitical_risk", 0.3),
+                supply_disruption_risk=r.get("supply_disruption", 0.3),
+                tariff_risk=min(1.0, b.get("import_tariff", 0.1) * 2),  # 关税越高风险越高
+                logistics_risk=r.get("logistics_risk", 0.3),
+                regulatory_risk=r.get("regulatory_risk", 0.2),
+                tariff_rate=b.get("import_tariff"),
+                localization_requirement=b.get("localization_requirement"),
+                ev_incentive_level=0.5 if b.get("ev_incentive") else 0.0,
+                import_dependency=imp_dep,
+            )
+            risk_metrics_list.append(metrics)
+
+        risk_scores = scorer.score_all(risk_metrics_list)
+
         col1, col2 = st.columns(2)
         with col1:
             st.plotly_chart(fig_supply_chain_radar(selected_country_codes), use_container_width=True)
@@ -778,12 +807,262 @@ def run():
             st.plotly_chart(fig_risk_heatmap(selected_country_codes), use_container_width=True)
         st.markdown(f'📚 {source_caption(["CEIC", "MarkLines"])}')
 
-        # 风险详情表
+        # 量化风险评分表
+        st.subheader("📊 量化风险评分")
+        risk_rows = []
+        for s in risk_scores:
+            level_emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}.get(s.risk_level, "⚪")
+            risk_rows.append({
+                "国家": s.country_cn,
+                "综合评分": f"{s.overall_score:.1%}",
+                "风险等级": f"{level_emoji} {s.risk_level}",
+                "地缘": f"{s.factor_breakdown.get('geopolitical', 0):.0%}",
+                "关税": f"{s.factor_breakdown.get('tariff', 0):.0%}",
+                "供应": f"{s.factor_breakdown.get('supply_disruption', 0):.0%}",
+                "物流": f"{s.factor_breakdown.get('logistics', 0):.0%}",
+                "法规": f"{s.factor_breakdown.get('regulatory', 0):.0%}",
+            })
+        st.dataframe(pd.DataFrame(risk_rows), use_container_width=True, hide_index=True)
+
+        # 建议区
+        st.subheader("💡 风险应对建议")
+        for s in risk_scores:
+            if s.recommendations:
+                with st.expander(f"{s.country_cn} — {s.overall_score:.0%} ({s.risk_level})"):
+                    for rec in s.recommendations:
+                        st.markdown(f"- {rec}")
+
+        # 原有风险详情表
         st.subheader("📝 各国供应链关键风险")
         risk_df = table_supply_chain_risks(selected_country_codes)
         st.dataframe(risk_df, use_container_width=True, height=400)
 
     with tab4:
+        # ── 优化决策 Tab ──
+        st.subheader("🎯 中国汽车出口市场分配优化")
+        st.caption("基于 CP-SAT 混合整数规划，回答“去哪里、去多少”的核心问题")
+
+        # 构建候选国数据
+        allocator = MarketAllocator()
+        candidates = []
+        for c in selected_country_codes:
+            s_data = SALES.get(c, {})
+            b = TRADE_BARRIERS.get(c, {})
+            brand = BRANDS.get(c, {})
+            r = RISK.get(c, {})
+            # 从风险评分获取综合风险
+            rs = next((x for x in risk_scores if x.country_id == c), None)
+            risk_val = rs.overall_score if rs else sum(r.get(d, 0.3) for d in ["geopolitical_risk", "supply_disruption", "price_volatility", "logistics_risk", "regulatory_risk"]) / 5
+
+            # 物流天数估算
+            logistics_days_map = {
+                "Malaysia": 7, "Thailand": 10, "Indonesia": 12, "Pakistan": 18,
+                "Kazakhstan": 20, "Turkey": 22, "Russia": 25, "SaudiArabia": 25,
+                "SouthAfrica": 30, "Peru": 35, "Chile": 38, "Mexico": 40, "Brazil": 45,
+            }
+
+            market_size = s_data.get("new_car_sales", [0])[-1] if s_data else 100_000
+            china_share = 0.0
+            if brand and "brands" in brand and "shares" in brand:
+                for bname, share in zip(brand["brands"], brand["shares"]):
+                    if any(kw in bname for kw in ["中国品牌", "Chinese", "Chery", "BYD", "MG", "Geely", "Haval", "Great Wall"]):
+                        china_share = max(china_share, share / 100)
+
+            candidates.append(MarketCandidate(
+                country_id=c,
+                country_cn=COUNTRY_CN.get(c, c),
+                market_size=market_size,
+                china_brand_share=china_share,
+                tariff_rate=b.get("import_tariff", 0.1),
+                risk_score=risk_val,
+                logistics_days=logistics_days_map.get(c, 30),
+                max_share=0.30 if b.get("localization_requirement", 0) < 0.3 else 0.20,
+                localization_requirement=b.get("localization_requirement", 0),
+            ))
+
+        # 侧边控制
+        col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
+        with col_ctrl1:
+            risk_lambda = st.slider(
+                "风险厌恶系数 λ", 0.0, 1.0, 0.3, 0.05,
+                help="λ=0 激进策略（纯利润最大化），λ=1 保守策略（风险最小化）",
+            )
+        with col_ctrl2:
+            export_capacity = st.number_input(
+                "年出口产能上限（万辆）", 50, 1000, 500, 50,
+            ) * 10_000
+        with col_ctrl3:
+            max_countries = st.slider("最多进入国家数", 3, 13, 10)
+
+        # 优化
+        result = allocator.optimize(
+            candidates,
+            total_export_capacity=export_capacity,
+            risk_lambda=risk_lambda,
+            max_countries=max_countries,
+        )
+
+        # 策略标签
+        if risk_lambda <= 0.15:
+            strategy_label = "🔥 激进策略"
+        elif risk_lambda <= 0.5:
+            strategy_label = "⚖️ 平衡策略"
+        else:
+            strategy_label = "🛡️ 保守策略"
+
+        # 结果概览
+        st.markdown(f"**{strategy_label}** | 求解器: `{result.method}` | 状态: `{result.solver_status}` | 耗时: {result.solve_time_ms:.0f}ms")
+        mc1, mc2, mc3 = st.columns(3)
+        with mc1:
+            st.metric("预期总收益", f"{result.total_revenue/10000:.1f}万辆")
+        with mc2:
+            st.metric("总风险暴露", f"{result.total_risk/10000:.1f}万辆当量")
+        with mc3:
+            st.metric("目标国数", f"{len(result.allocations)}")
+
+        # 分配柱状图
+        if result.allocations:
+            alloc_sorted = sorted(result.allocations.items(), key=lambda x: -x[1])
+            alloc_countries = [COUNTRY_CN.get(c, c) for c, _ in alloc_sorted]
+            alloc_values = [v for _, v in alloc_sorted]
+            alloc_colors = [COUNTRY_COLORS.get(c, "#95a5a6") for c, _ in alloc_sorted]
+
+            fig_alloc = go.Figure(go.Bar(
+                x=alloc_countries,
+                y=alloc_values,
+                marker_color=alloc_colors,
+                text=[f"{v/10000:.1f}万" for v in alloc_values],
+                textposition="outside",
+                hovertemplate="%{x}<br>建议出口: %{y:,.0f} 辆<extra></extra>",
+            ))
+            fig_alloc.update_layout(
+                title=dict(text=f"🎯 建议出口分配方案 (λ={risk_lambda:.2f})", font=dict(size=16)),
+                xaxis=dict(title="目标国"),
+                yaxis=dict(title="出口量 (辆)", tickformat=","),
+                template="plotly_white",
+                height=450,
+            )
+            st.plotly_chart(fig_alloc, use_container_width=True)
+
+            # 分配详情表
+            st.subheader("📋 分配详情")
+            alloc_rows = []
+            for c_id, qty in alloc_sorted:
+                cand = next((x for x in candidates if x.country_id == c_id), None)
+                rs = next((x for x in risk_scores if x.country_id == c_id), None)
+                alloc_rows.append({
+                    "目标国": COUNTRY_CN.get(c_id, c_id),
+                    "建议出口量": f"{qty:,.0f} 辆",
+                    "市场容量": f"{cand.market_size:,.0f}" if cand else "—",
+                    "份额": f"{qty/cand.market_size:.1%}" if cand and cand.market_size > 0 else "—",
+                    "关税": f"{cand.tariff_rate:.0%}" if cand else "—",
+                    "风险评分": f"{rs.overall_score:.1%}" if rs else "—",
+                    "风险等级": rs.risk_level if rs else "—",
+                })
+            st.dataframe(pd.DataFrame(alloc_rows), use_container_width=True, hide_index=True)
+
+        # 三策略对比
+        st.divider()
+        st.subheader("📊 三策略一键对比")
+        if st.button("🔄 生成对比", key="compare_strategies"):
+            with st.spinner("计算中..."):
+                strategies = allocator.compare_strategies(candidates, export_capacity)
+                c1, c2, c3 = st.columns(3)
+
+                for col, label, key in [(c1, "🔥 激进 (λ=0)", "aggressive"), (c2, "⚖️ 平衡 (λ=拐点)", "balanced"), (c3, "🛡️ 保守 (λ=1)", "conservative")]:
+                    with col:
+                        res = strategies[key]
+                        st.markdown(f"**{label}**")
+                        st.metric("目标国数", f"{len(res.allocations)}")
+                        st.metric("预期收益", f"{res.total_revenue/10000:.1f}万")
+                        st.metric("风险暴露", f"{res.total_risk/10000:.1f}万")
+                        top3 = sorted(res.allocations.items(), key=lambda x: -x[1])[:3]
+                        for c_id, qty in top3:
+                            st.caption(f"  {COUNTRY_CN.get(c_id, c_id)}: {qty/10000:.1f}万")
+
+                # 敏感性曲线
+                sens = strategies["sensitivity"]
+                fig_sens = go.Figure()
+                fig_sens.add_trace(go.Scatter(
+                    x=sens.lambda_values, y=[r/10000 for r in sens.revenues],
+                    mode="lines+markers", name="预期收益(万辆)",
+                    line=dict(color="#2ca02c", width=2.5),
+                ))
+                fig_sens.add_trace(go.Scatter(
+                    x=sens.lambda_values, y=[r/10000 for r in sens.risks],
+                    mode="lines+markers", name="风险暴露(万辆)",
+                    line=dict(color="#d62728", width=2.5),
+                ))
+                # 拐点标注
+                fig_sens.add_vline(x=sens.elbow_lambda, line_dash="dash", line_color="gray",
+                                   annotation_text=f"拐点 λ={sens.elbow_lambda:.2f}")
+                fig_sens.update_layout(
+                    title="收益-风险敏感性曲线",
+                    xaxis=dict(title="风险厌恶系数 λ"),
+                    yaxis=dict(title="万辆"),
+                    template="plotly_white",
+                    height=350,
+                    legend=dict(orientation="h", y=-0.2),
+                )
+                st.plotly_chart(fig_sens, use_container_width=True)
+
+        # ── CKD/CBU 本地化率分析 ──
+        st.divider()
+        st.subheader("🏭 CKD vs CBU 进入模式分析")
+        st.caption("基于BOM物料清单 + 各国关税/本地化率法规 → 推荐最优进入模式")
+
+        bom_analyzer = AutomotiveBOMAnalyzer()
+        is_ev_bom = st.toggle("分析EV车型", value=False, key="bom_ev_toggle")
+
+        bom_results = bom_analyzer.analyze_all(selected_country_codes, is_ev=is_ev_bom)
+
+        # 模式分布柱状图
+        mode_colors = {EntryMode.CBU: "#e74c3c", EntryMode.SKD: "#f39c12", EntryMode.CKD: "#27ae60"}
+        fig_bom = go.Figure()
+        for mode in [EntryMode.CKD, EntryMode.SKD, EntryMode.CBU]:
+            mode_results = [r for r in bom_results if r.recommended_mode == mode]
+            if mode_results:
+                fig_bom.add_trace(go.Bar(
+                    x=[r.country_cn for r in mode_results],
+                    y=[r.total_cost_index for r in mode_results],
+                    name=mode.value.upper(),
+                    marker_color=mode_colors[mode],
+                    text=[f"{r.total_cost_index:.2f}" for r in mode_results],
+                    textposition="outside",
+                    hovertemplate="%{x}: 成本指数 %{y:.2f}<extra></extra>",
+                ))
+        fig_bom.update_layout(
+            title=dict(text="🏭 各国推荐进入模式 & 成本指数 (CBU=1.0基准)", font=dict(size=16)),
+            xaxis=dict(title="国家"),
+            yaxis=dict(title="成本指数"),
+            template="plotly_white",
+            height=400,
+        )
+        st.plotly_chart(fig_bom, use_container_width=True)
+
+        # BOM详情表
+        bom_rows = []
+        mode_emoji = {EntryMode.CBU: "🔴", EntryMode.SKD: "🟡", EntryMode.CKD: "🟢"}
+        for r in sorted(bom_results, key=lambda x: x.total_cost_index):
+            bom_rows.append({
+                "国家": r.country_cn,
+                "推荐模式": f"{mode_emoji.get(r.recommended_mode, '')} {r.recommended_mode.value.upper()}",
+                "成本指数": f"{r.total_cost_index:.2f}",
+                "本地化率": f"{r.localization_rate:.0%}",
+                "要求本地化率": f"{DEFAULT_COUNTRY_PROFILES[r.country_id].required_localization:.0%}" if r.country_id in DEFAULT_COUNTRY_PROFILES else "—",
+                "关税节省": f"{r.tariff_savings:.0%}",
+                "回本年数": f"{r.breakeven_years:.1f}年" if r.breakeven_years < 100 else "CBU最优",
+            })
+        st.dataframe(pd.DataFrame(bom_rows), use_container_width=True, hide_index=True)
+
+        # 本地化率差距分析
+        with st.expander("📋 各国子系统本地化率明细"):
+            for r in bom_results:
+                st.markdown(f"**{r.country_cn}** — {r.recommended_mode.value.upper()}")
+                for rec in r.recommendations:
+                    st.caption(f"  {rec}")
+
+    with tab5:
         st.subheader("📋 国家概览表")
         overview_df = table_country_overview(selected_country_codes)
         st.dataframe(overview_df, use_container_width=True, hide_index=True)
@@ -796,7 +1075,7 @@ def run():
             with st.expander("点击展开原始数据"):
                 st.json(data)
 
-    with tab5:
+    with tab6:
         # 中国品牌市场份额增长趋势
         if CHINA_BRAND_TREND:
             st.plotly_chart(fig_china_brand_trend(), use_container_width=True)
@@ -811,7 +1090,7 @@ def run():
         else:
             st.warning("暂无EV渗透率趋势数据")
 
-    with tab6:
+    with tab7:
         # 各国贸易壁垒对比
         if TRADE_BARRIERS:
             st.plotly_chart(fig_trade_barriers(), use_container_width=True)
@@ -837,7 +1116,7 @@ def run():
         else:
             st.warning("暂无进口依赖度数据")
 
-    with tab7:
+    with tab8:
         # 二手车/新车市场比率
         if USED_NEW_RATIO:
             st.plotly_chart(fig_used_new_ratio(), use_container_width=True)

@@ -19,7 +19,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..config import settings
+try:
+    from ..config import settings
+except ImportError:
+    from src.config import settings
 
 log = __import__("logging").getLogger(__name__)
 

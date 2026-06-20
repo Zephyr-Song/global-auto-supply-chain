@@ -20,7 +20,10 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from ..config import settings
+try:
+    from ..config import settings
+except ImportError:
+    from src.config import settings
 
 log = logging.getLogger(__name__)
 

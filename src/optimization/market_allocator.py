@@ -26,7 +26,10 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from ..config import settings
+try:
+    from ..config import settings
+except ImportError:
+    from src.config import settings
 
 log = __import__("logging").getLogger(__name__)
 
