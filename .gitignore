@@ -39,5 +39,5 @@ venv/
 .venv/
 env/
 
-# 测试脚本（临时）
-test_*.py
+# 临时测试脚本（根目录）
+/test_*.py
